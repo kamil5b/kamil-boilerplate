@@ -19,6 +19,8 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import sidebarConfig from "./sidebar.json";
 import { cn } from "@/client/utils";
@@ -35,6 +37,18 @@ const iconMap = {
   creditCard: CreditCard,
 };
 
+interface SubmenuItem {
+  title: string;
+  href: string;
+}
+
+interface NavigationItem {
+  title: string;
+  href: string;
+  icon: string;
+  submenu?: SubmenuItem[];
+}
+
 interface ProtectedLayoutProps {
   children: React.ReactNode;
 }
@@ -44,6 +58,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -90,21 +105,62 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {sidebarConfig.navigation.map((item) => {
+            {(sidebarConfig.navigation as NavigationItem[]).map((item) => {
               const Icon = iconMap[item.icon as keyof typeof iconMap];
               const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+              const hasSubmenu = item.submenu && item.submenu.length > 0;
+              const isExpanded = expandedMenus[item.href] || false;
 
               return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    {Icon && <Icon className="mr-2 h-4 w-4" />}
-                    {item.title}
-                  </Button>
-                </Link>
+                <div key={item.href}>
+                  {hasSubmenu ? (
+                    <Button
+                      variant={isActive ? "secondary" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => setExpandedMenus({ ...expandedMenus, [item.href]: !isExpanded })}
+                    >
+                      {Icon && <Icon className="mr-2 h-4 w-4" />}
+                      <span className="flex-1 text-left">{item.title}</span>
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : (
+                    <Link href={item.href}>
+                      <Button
+                        variant={isActive ? "secondary" : "ghost"}
+                        className="w-full justify-start"
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        {Icon && <Icon className="mr-2 h-4 w-4" />}
+                        {item.title}
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {/* Submenu */}
+                  {hasSubmenu && isExpanded && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.submenu!.map((subItem) => {
+                        const isSubActive = pathname === subItem.href;
+                        return (
+                          <Link key={subItem.href} href={subItem.href}>
+                            <Button
+                              variant={isSubActive ? "secondary" : "ghost"}
+                              size="sm"
+                              className="w-full justify-start"
+                              onClick={() => setSidebarOpen(false)}
+                            >
+                              {subItem.title}
+                            </Button>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>

@@ -33,12 +33,40 @@
     {
       "title": "Inventory",
       "href": "/inventory-histories",
-      "icon": "warehouse"
+      "icon": "warehouse",
+      "submenu": [
+        {
+          "title": "History",
+          "href": "/inventory-histories"
+        },
+        {
+          "title": "Summary",
+          "href": "/inventory-histories/summary"
+        },
+        {
+          "title": "Manipulate",
+          "href": "/inventory-histories/manipulate"
+        }
+      ]
     },
     {
       "title": "Transactions",
       "href": "/transactions",
-      "icon": "receipt"
+      "icon": "receipt",
+      "submenu": [
+        {
+          "title": "List",
+          "href": "/transactions"
+        },
+        {
+          "title": "Dashboard",
+          "href": "/transactions/dashboard"
+        },
+        {
+          "title": "Create New",
+          "href": "/transactions/new"
+        }
+      ]
     },
     {
       "title": "Payments",
