@@ -12,6 +12,10 @@ client/
 ├── helpers/         # Utility functions
 ├── hooks/           # Custom React hooks
 ├── layouts/         # Layout components
+├── template/        # Generic page templates for CRUD operations
+│   ├── ListPageTemplate.tsx    # Reusable list page template
+│   ├── FormPageTemplate.tsx    # Reusable form page template
+│   └── index.ts     # Template exports
 ├── pages/           # Page-level components (organized by domain)
 │   ├── auth/        # Authentication pages
 │   ├── dashboard/   # Dashboard pages
@@ -610,7 +614,258 @@ export default function LoginPage() {
 - Background styling
 - No authentication required
 
-### 7. Pages (`pages/`)
+### 7. Templates (`template/`)
+
+Generic page templates that encapsulate common CRUD patterns, reducing boilerplate code.
+
+#### `ListPageTemplate`
+
+Reusable template for list pages with built-in pagination, search, and CRUD operations.
+
+**Features**:
+- Permission-based access control
+- Automatic pagination with `usePagination` hook
+- Search functionality with debouncing
+- Configurable table columns
+- CRUD operations (create, edit, delete)
+- Loading and error states
+- Responsive table layout
+
+**Usage Example**:
+```tsx
+import { ListPageTemplate, type ColumnConfig } from "@/client/template";
+import { AccessPermission } from "@/shared/enums";
+import type { CustomerResponse } from "@/shared";
+
+export function CustomersListPage({ onEdit, onCreate }: { onEdit: (id: string) => void; onCreate: () => void }) {
+  const columns: ColumnConfig<CustomerResponse>[] = [
+    { header: "Name", accessor: (customer) => customer.name },
+    { header: "Email", accessor: (customer) => customer.email },
+    { header: "Phone", accessor: (customer) => customer.phone || "-" },
+  ];
+
+  return (
+    <ListPageTemplate<CustomerResponse>
+      title="Customers"
+      menuPermission={AccessPermission.MENU_CUSTOMER}
+      createPermission={AccessPermission.CREATE_CUSTOMER}
+      editPermission={AccessPermission.EDIT_CUSTOMER}
+      deletePermission={AccessPermission.DELETE_CUSTOMER}
+      apiEndpoint="/api/customers"
+      searchPlaceholder="Search customers..."
+      createButtonText="Create Customer"
+      onEdit={onEdit}
+      onCreate={onCreate}
+      columns={columns}
+      getDeleteConfirmMessage={(customer) => `Are you sure you want to delete "${customer.name}"?`}
+    />
+  );
+}
+```
+
+**Props**:
+- `title` - Page title
+- `menuPermission` - Permission to access the page
+- `createPermission` - Permission to create (optional)
+- `editPermission` - Permission to edit (optional)
+- `deletePermission` - Permission to delete (optional)
+- `apiEndpoint` - API endpoint for fetching data
+- `searchPlaceholder` - Search input placeholder
+- `createButtonText` - Text for create button
+- `onEdit` - Callback when edit button clicked
+- `onCreate` - Callback when create button clicked
+- `columns` - Array of column configurations
+- `getDeleteConfirmMessage` - Function to generate delete confirmation
+- `emptyStateMessage` - Custom empty state message (optional)
+- `loadingMessage` - Custom loading message (optional)
+- `redirectPath` - Redirect on permission denied (default: "/dashboard")
+
+#### `FormPageTemplate`
+
+Reusable template for create/edit form pages with validation and loading states.
+
+**Features**:
+- Permission-based access control
+- Create and Edit modes
+- Automatic data fetching in edit mode
+- Built-in form validation
+- Support for multiple field types (text, email, number, textarea, select, date, custom)
+- Custom field rendering (e.g., PaginatedSelect)
+- Loading and error states
+- Type-safe transformations
+
+**Basic Usage Example**:
+```tsx
+import { FormPageTemplate, type FormFieldConfig } from "@/client/template";
+import { AccessPermission } from "@/shared/enums";
+import type { CustomerResponse, CreateCustomerRequest } from "@/shared";
+import { validateRequired, isValidEmail, isValidPhone } from "@/client/helpers/validation";
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+export function CustomerFormPage({ customerId, onSuccess, onCancel }: { customerId?: string; onSuccess: () => void; onCancel: () => void }) {
+  const fields: FormFieldConfig<FormData>[] = [
+    {
+      name: "name",
+      label: "Name",
+      type: "text",
+      placeholder: "Enter customer name",
+      required: true,
+      initialValue: "",
+    },
+    {
+      name: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "customer@example.com",
+      required: true,
+      initialValue: "",
+    },
+    {
+      name: "phone",
+      label: "Phone",
+      type: "text",
+      placeholder: "+1 (555) 123-4567",
+      initialValue: "",
+    },
+    {
+      name: "address",
+      label: "Address",
+      type: "textarea",
+      placeholder: "Enter address",
+      rows: 3,
+      initialValue: "",
+    },
+  ];
+
+  return (
+    <FormPageTemplate<CustomerResponse, CreateCustomerRequest, FormData>
+      title="Customer"
+      entityId={customerId}
+      createPermission={AccessPermission.CREATE_CUSTOMER}
+      editPermission={AccessPermission.EDIT_CUSTOMER}
+      apiEndpoint="/api/customers"
+      fields={fields}
+      onSuccess={onSuccess}
+      onCancel={onCancel}
+      validate={(data) => {
+        const errors: Record<string, string> = {};
+        if (validateRequired(data.name)) errors.name = "Name is required";
+        if (validateRequired(data.email)) errors.email = "Email is required";
+        else if (!isValidEmail(data.email)) errors.email = "Invalid email format";
+        if (data.phone && !isValidPhone(data.phone)) errors.phone = "Invalid phone format";
+        return errors;
+      }}
+      transformToRequest={(data) => ({
+        name: data.name,
+        email: data.email,
+        phone: data.phone || undefined,
+        address: data.address || undefined,
+      })}
+      transformFromResponse={(response) => ({
+        name: response.name,
+        email: response.email,
+        phone: response.phone || "",
+        address: response.address || "",
+      })}
+    />
+  );
+}
+```
+
+**Advanced Example with Custom Field (PaginatedSelect)**:
+```tsx
+import { PaginatedSelect } from "@/client/components";
+import type { CustomerResponse } from "@/shared";
+
+interface FormData {
+  customerId: string;
+  productName: string;
+  quantity: string;
+}
+
+const fields: FormFieldConfig<FormData>[] = [
+  {
+    name: "customerId",
+    label: "Customer",
+    type: "custom",
+    required: true,
+    initialValue: "",
+    renderCustom: (value, onChange, disabled) => (
+      <PaginatedSelect<CustomerResponse>
+        endpoint="/api/customers"
+        value={value}
+        onChange={onChange}
+        displayValue={(customer) => customer.name}
+        getId={(customer) => customer.id}
+        label=""
+        placeholder="Select customer"
+        disabled={disabled}
+      />
+    ),
+  },
+  {
+    name: "productName",
+    label: "Product",
+    type: "text",
+    placeholder: "Enter product name",
+    required: true,
+    initialValue: "",
+  },
+  {
+    name: "quantity",
+    label: "Quantity",
+    type: "number",
+    placeholder: "Enter quantity",
+    required: true,
+    min: 1,
+    initialValue: "1",
+  },
+];
+```
+
+**Supported Field Types**:
+- `text` - Text input
+- `email` - Email input
+- `number` - Number input (with min/max/step)
+- `password` - Password input
+- `textarea` - Multi-line text (with rows)
+- `select` - Dropdown select (requires options array)
+- `date` - Date picker
+- `datetime-local` - DateTime picker
+- `custom` - Custom renderer via `renderCustom` prop
+
+**Props**:
+- `title` - Form title (e.g., "Customer", "Product")
+- `entityId` - ID for edit mode (undefined = create mode)
+- `createPermission` - Permission to create
+- `editPermission` - Permission to edit
+- `apiEndpoint` - API endpoint (e.g., "/api/customers")
+- `fields` - Array of field configurations
+- `onSuccess` - Callback on successful submit
+- `onCancel` - Callback on cancel
+- `validate` - Validation function returning errors object
+- `transformToRequest` - Transform form data to API request
+- `transformFromResponse` - Transform API response to form data
+- `loadingMessage` - Custom loading message (optional)
+- `redirectPath` - Redirect on permission denied (default: "/dashboard")
+- `submitButtonText` - Custom button text (optional)
+
+**Benefits of Using Templates**:
+- ✅ Reduce code duplication across similar pages
+- ✅ Consistent UI/UX patterns
+- ✅ Built-in permission handling
+- ✅ Pre-configured loading and error states
+- ✅ Type-safe configuration
+- ✅ Easy to maintain and update
+- ✅ Focus on domain logic, not boilerplate
+
+### 8. Pages (`pages/`)
 
 Page components are full-featured components that:
 - Use hooks for data fetching and state

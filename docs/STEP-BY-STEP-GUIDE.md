@@ -354,6 +354,45 @@ export async function DELETE(
 ### 5.1 Create List Page Component
 - Location: `src/client/pages/<domain>/<Names>ListPage.tsx` (organized by domain folder)
   - Example: `src/client/pages/user/UsersListPage.tsx`, `src/client/pages/product/ProductsListPage.tsx`
+
+**Option A: Use ListPageTemplate (Recommended for standard CRUD)**
+- Import `ListPageTemplate` from `@/client/template`
+- Configure columns, permissions, and callbacks
+- Minimal boilerplate, consistent patterns
+
+**Example using ListPageTemplate**:
+```typescript
+import { ListPageTemplate, type ColumnConfig } from "@/client/template";
+import { AccessPermission } from "@/shared/enums";
+import type { CustomerResponse } from "@/shared";
+
+export function CustomersListPage({ onEdit, onCreate }: { onEdit: (id: string) => void; onCreate: () => void }) {
+  const columns: ColumnConfig<CustomerResponse>[] = [
+    { header: "Name", accessor: (customer) => customer.name },
+    { header: "Email", accessor: (customer) => customer.email },
+    { header: "Phone", accessor: (customer) => customer.phone || "-" },
+  ];
+
+  return (
+    <ListPageTemplate<CustomerResponse>
+      title="Customers"
+      menuPermission={AccessPermission.MENU_CUSTOMER}
+      createPermission={AccessPermission.CREATE_CUSTOMER}
+      editPermission={AccessPermission.EDIT_CUSTOMER}
+      deletePermission={AccessPermission.DELETE_CUSTOMER}
+      apiEndpoint="/api/customers"
+      searchPlaceholder="Search customers..."
+      createButtonText="Create Customer"
+      onEdit={onEdit}
+      onCreate={onCreate}
+      columns={columns}
+      getDeleteConfirmMessage={(customer) => `Are you sure you want to delete "${customer.name}"?`}
+    />
+  );
+}
+```
+
+**Option B: Custom Implementation (For complex or unique pages)**
 - Use `usePagination` hook from `@/client/hooks`
 - Use API helpers: `fetchPaginated`, `deleteResource` from `@/client/helpers`
 - Use shadcn/ui components from `@/client/components`:
@@ -491,6 +530,86 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
 - Location: `src/client/pages/<domain>/<Name>FormPage.tsx` (organized by domain folder)
   - Example: `src/client/pages/user/UserFormPage.tsx`, `src/client/pages/product/ProductFormPage.tsx`
 - Accept optional `<name>Id` prop (undefined = create mode, string = edit mode)
+
+**Option A: Use FormPageTemplate (Recommended for standard forms)**
+- Import `FormPageTemplate` from `@/client/template`
+- Configure fields, validation, and transformations
+- Minimal boilerplate, consistent patterns
+- Supports custom fields (e.g., PaginatedSelect)
+
+**Example using FormPageTemplate**:
+```typescript
+import { FormPageTemplate, type FormFieldConfig } from "@/client/template";
+import { AccessPermission } from "@/shared/enums";
+import type { CustomerResponse, CreateCustomerRequest } from "@/shared";
+import { validateRequired, isValidEmail } from "@/client/helpers/validation";
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export function CustomerFormPage({ customerId, onSuccess, onCancel }: { customerId?: string; onSuccess: () => void; onCancel: () => void }) {
+  const fields: FormFieldConfig<FormData>[] = [
+    {
+      name: "name",
+      label: "Name",
+      type: "text",
+      placeholder: "Enter name",
+      required: true,
+      initialValue: "",
+    },
+    {
+      name: "email",
+      label: "Email",
+      type: "email",
+      placeholder: "customer@example.com",
+      required: true,
+      initialValue: "",
+    },
+    {
+      name: "phone",
+      label: "Phone",
+      type: "text",
+      placeholder: "+1 (555) 123-4567",
+      initialValue: "",
+    },
+  ];
+
+  return (
+    <FormPageTemplate<CustomerResponse, CreateCustomerRequest, FormData>
+      title="Customer"
+      entityId={customerId}
+      createPermission={AccessPermission.CREATE_CUSTOMER}
+      editPermission={AccessPermission.EDIT_CUSTOMER}
+      apiEndpoint="/api/customers"
+      fields={fields}
+      onSuccess={onSuccess}
+      onCancel={onCancel}
+      validate={(data) => {
+        const errors: Record<string, string> = {};
+        if (validateRequired(data.name)) errors.name = "Name is required";
+        if (validateRequired(data.email)) errors.email = "Email is required";
+        else if (!isValidEmail(data.email)) errors.email = "Invalid email";
+        return errors;
+      }}
+      transformToRequest={(data) => ({
+        name: data.name,
+        email: data.email,
+        phone: data.phone || undefined,
+      })}
+      transformFromResponse={(response) => ({
+        name: response.name,
+        email: response.email,
+        phone: response.phone || "",
+      })}
+    />
+  );
+}
+```
+
+**Option B: Custom Implementation (For complex forms)**
 - Use API helpers: `fetchById`, `createResource`, `updateResource` from `@/client/helpers`
 - Use validation helpers from `@/client/helpers/validation`
 - Use shadcn/ui components from `@/client/components`:

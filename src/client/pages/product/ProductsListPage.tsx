@@ -1,27 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import type { ProductResponse } from "@/shared";
-import { usePagination, usePermissions } from "@/client/hooks";
-import { fetchPaginated, deleteResource } from "@/client/helpers";
-import {
-  PageHeader,
-  SearchBar,
-  Pagination,
-  ErrorAlert,
-  LoadingSpinner,
-  TableActions,
-  Protected,
-} from "@/client/components";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/client/components/ui/table";
+import { ListPageTemplate } from "@/client/template";
 import { Badge } from "@/client/components/ui/badge";
 import { formatDateTime } from "@/client/helpers";
 import { AccessPermission } from "@/shared/enums";
@@ -31,122 +11,41 @@ interface ProductsListPageProps {
   onCreate: () => void;
 }
 
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case "SELLABLE": return "bg-green-500";
+    case "ASSET": return "bg-blue-500";
+    case "UTILITY": return "bg-yellow-500";
+    case "PLACEHOLDER": return "bg-gray-500";
+    default: return "bg-gray-500";
+  }
+};
+
 export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
-  const router = useRouter();
-  const { can, isLoading: authLoading } = usePermissions();
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!can(AccessPermission.MENU_PRODUCT)) {
-      router.push("/dashboard");
-    }
-  }, [can, authLoading, router]);
-  const {
-    data: products,
-    page,
-    totalPages,
-    search,
-    setSearch,
-    isLoading,
-    error,
-    refresh,
-    nextPage,
-    prevPage,
-  } = usePagination<ProductResponse>({
-    fetchFn: (page, limit, search) => fetchPaginated<ProductResponse>("/api/products", page, limit, search),
-  });
-
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete product "${name}"?`)) return;
-
-    try {
-      await deleteResource("/api/products", id);
-      refresh();
-    } catch (error: any) {
-      alert(error.message || "Failed to delete product");
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "SELLABLE": return "bg-green-500";
-      case "ASSET": return "bg-blue-500";
-      case "UTILITY": return "bg-yellow-500";
-      case "PLACEHOLDER": return "bg-gray-500";
-      default: return "bg-gray-500";
-    }
-  };
-
-  if (authLoading) return <LoadingSpinner message="Loading..." />;
-  if (isLoading) return <LoadingSpinner message="Loading products..." />;
-  if (error) return <ErrorAlert message={error} />;
-
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Products"
-        onCreateClick={can(AccessPermission.CREATE_PRODUCT) ? onCreate : undefined}
-        createButtonText="Create Product"
-      />
-
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-        placeholder="Search products..."
-      />
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Created At</TableHead>
-              <Protected permissions={[AccessPermission.EDIT_PRODUCT, AccessPermission.DELETE_PRODUCT]}>
-                <TableHead className="text-right">Actions</TableHead>
-              </Protected>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  No products found
-                </TableCell>
-              </TableRow>
-            ) : (
-              products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge className={getTypeColor(product.type)}>{product.type}</Badge>
-                  </TableCell>
-                  <TableCell>{product.description}</TableCell>
-                  <TableCell>{formatDateTime(product.createdAt)}</TableCell>
-                  <Protected permissions={[AccessPermission.EDIT_PRODUCT, AccessPermission.DELETE_PRODUCT]}>
-                    <TableCell className="text-right">
-                      <TableActions
-                        onEdit={can(AccessPermission.EDIT_PRODUCT) ? () => onEdit(product.id) : undefined}
-                        onDelete={can(AccessPermission.DELETE_PRODUCT) ? () => handleDelete(product.id, product.name) : undefined}
-                      />
-                    </TableCell>
-                  </Protected>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPrevious={prevPage}
-          onNext={nextPage}
-        />
-      )}
-    </div>
+    <ListPageTemplate<ProductResponse>
+      title="Products"
+      menuPermission={AccessPermission.MENU_PRODUCT}
+      createPermission={AccessPermission.CREATE_PRODUCT}
+      editPermission={AccessPermission.EDIT_PRODUCT}
+      deletePermission={AccessPermission.DELETE_PRODUCT}
+      apiEndpoint="/api/products"
+      searchPlaceholder="Search products..."
+      createButtonText="Create Product"
+      onEdit={onEdit}
+      onCreate={onCreate}
+      columns={[
+        { header: "Name", accessor: (product) => product.name, className: "font-medium" },
+        { 
+          header: "Type", 
+          accessor: (product) => (
+            <Badge className={getTypeColor(product.type)}>{product.type}</Badge>
+          )
+        },
+        { header: "Description", accessor: (product) => product.description },
+        { header: "Created At", accessor: (product) => formatDateTime(product.createdAt) },
+      ]}
+      getDeleteConfirmMessage={(product) => `Are you sure you want to delete product "${product.name}"?`}
+    />
   );
 }

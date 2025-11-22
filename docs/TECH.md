@@ -31,6 +31,10 @@ Controller (backend):
 View (frontend):
 - folder name inside src: `client`
 - Modular architecture with organized folders:
+  - `client/template/` - Generic page templates for CRUD operations
+    - `ListPageTemplate` - Reusable list page with pagination, search, CRUD
+    - `FormPageTemplate` - Reusable form page for create/edit operations
+    - Reduces boilerplate code with configurable templates
   - `client/pages/` - Page components organized by domain (25+ page components)
     - `pages/auth/` - Auth pages (LoginPage, RegisterPage)
     - `pages/dashboard/` - Dashboard page (DashboardPage)
@@ -44,6 +48,10 @@ View (frontend):
     - `pages/payment/` - Payment management (PaymentsListPage, PaymentFormPage, PaymentDetailPage, PaymentDashboardPage)
     - `pages/finance/` - Finance dashboard (FinanceDashboardPage)
   - `client/layouts/` - Layout components (ProtectedLayout, PublicLayout)
+  - `client/template/` - Generic page templates for CRUD operations
+    - `ListPageTemplate` - Reusable list page with pagination, search, CRUD
+    - `FormPageTemplate` - Reusable form page for create/edit operations
+    - Reduces boilerplate code with configurable templates
   - `client/components/` - Reusable UI components
     - shadcn/ui base components (ui folder)
     - Composed components: PageHeader, SearchBar, Pagination, TableActions, etc.
@@ -186,6 +194,8 @@ App Route (minimal wrapper)
 Layout (ProtectedLayout / PublicLayout)
     ↓
 Page Component (business logic)
+    ↓ (optional: use templates)
+Templates (ListPageTemplate / FormPageTemplate)
     ↓
 Composed Components (PageHeader, SearchBar, etc.)
     ↓
