@@ -5,7 +5,9 @@ import type {
   FinanceDashboardResponse,
   GrossSales,
   CashflowReport,
-  OutstandingBalance,
+  TradeAccount,
+  DeferredItems,
+  BalanceSheetPosition,
 } from "@/shared";
 
 export interface FinanceDashboardService {
@@ -42,14 +44,39 @@ export function createFinanceDashboardService(): FinanceDashboardService {
           netCashFlow: inflow - outflow,
         };
 
-        // Get outstanding balance (transactions - payments)
-        const accountsReceivable = cashflowData.inflow - grossSalesData.total_revenue ;
-        const accountsPayable =  cashflowData.outflow - grossSalesData.total_expenses;
+        // Get trade account
+        // A/R = Total sales that haven't been paid yet
+        // A/P = Total purchases that haven't been paid yet
+        const accountsReceivable = Math.max(0, totalRevenue - inflow);
+        const accountsPayable = Math.max(0, totalExpenses - outflow);
         
-        const outstandingBalance: OutstandingBalance = {
+        const tradeAccount: TradeAccount = {
           accountsReceivable,
           accountsPayable,
-          netWorkingCapital: accountsReceivable - accountsPayable,
+          outstandingBalance: accountsReceivable - accountsPayable,
+        };
+
+        // Get deferred items
+        // Unearned Revenue = Payments received before earning (advance payments from customers)
+        // Prepaid Expenses = Payments made before expenses incurred (advance payments to suppliers)
+        const unearnedRevenue = Math.max(0, inflow - totalRevenue);
+        const prepaidExpenses = Math.max(0, outflow - totalExpenses);
+        const deferredItems: DeferredItems = {
+          unearnedRevenue,
+          prepaidExpenses,
+          netDeferredPosition: unearnedRevenue - prepaidExpenses,
+        };
+
+        // Get balance sheet position
+        // Current Assets = Cash (Net Cash Flow) + Accounts Receivable
+        // Current Liabilities = Accounts Payable + Unearned Revenue
+        const netCashFlow = inflow - outflow;
+        const currentAssets = netCashFlow + accountsReceivable;
+        const currentLiabilities = accountsPayable + unearnedRevenue;
+        const balanceSheetPosition: BalanceSheetPosition = {
+          currentAssets,
+          currentLiabilities,
+          netWorkingCapital: currentAssets - currentLiabilities,
         };
 
         await client.query("COMMIT");
@@ -61,7 +88,9 @@ export function createFinanceDashboardService(): FinanceDashboardService {
           data: {
             grossSales,
             cashflowReport,
-            outstandingBalance,
+            tradeAccount,
+            deferredItems,
+            balanceSheetPosition,
           },
         };
       } catch (error) {

@@ -26,9 +26,21 @@ interface CashflowReport {
   netCashFlow: number;
 }
 
-interface OutstandingBalance {
+interface TradeAccount {
   accountsReceivable: number;
   accountsPayable: number;
+  outstandingBalance: number;
+}
+
+interface DeferredItems {
+  unearnedRevenue: number;
+  prepaidExpenses: number;
+  netDeferredPosition: number;
+}
+
+interface BalanceSheetPosition {
+  currentAssets: number;
+  currentLiabilities: number;
   netWorkingCapital: number;
 }
 
@@ -37,7 +49,9 @@ export function FinanceDashboardPage() {
   const { can, isLoading: authLoading } = usePermissions();
   const [grossSales, setGrossSales] = useState<GrossSales | null>(null);
   const [cashflowReport, setCashflowReport] = useState<CashflowReport | null>(null);
-  const [outstandingBalance, setOutstandingBalance] = useState<OutstandingBalance | null>(null);
+  const [tradeAccount, setTradeAccount] = useState<TradeAccount | null>(null);
+  const [deferredItems, setDeferredItems] = useState<DeferredItems | null>(null);
+  const [balanceSheetPosition, setBalanceSheetPosition] = useState<BalanceSheetPosition | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -64,13 +78,17 @@ export function FinanceDashboardPage() {
         data: {
           grossSales: GrossSales;
           cashflowReport: CashflowReport;
-          outstandingBalance: OutstandingBalance;
+          tradeAccount: TradeAccount;
+          deferredItems: DeferredItems;
+          balanceSheetPosition: BalanceSheetPosition;
         };
       }>("/api/finance/dashboard");
 
       setGrossSales(response.data.grossSales);
       setCashflowReport(response.data.cashflowReport);
-      setOutstandingBalance(response.data.outstandingBalance);
+      setTradeAccount(response.data.tradeAccount);
+      setDeferredItems(response.data.deferredItems);
+      setBalanceSheetPosition(response.data.balanceSheetPosition);
     } catch (err: any) {
       setError(err.message || "Failed to load finance dashboard data");
     } finally {
@@ -88,7 +106,7 @@ export function FinanceDashboardPage() {
 
       {error && <ErrorAlert message={error} />}
 
-      {!error && grossSales && cashflowReport && outstandingBalance && (
+      {!error && grossSales && cashflowReport && tradeAccount && deferredItems && balanceSheetPosition && (
         <>
           {/* Gross Sales Section */}
           <div>
@@ -186,9 +204,9 @@ export function FinanceDashboardPage() {
             </div>
           </div>
 
-          {/* Outstanding Balance Section */}
+          {/* Trade Account Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4">Outstanding Balance (Transaction - Payment)</h2>
+            <h2 className="text-xl font-semibold mb-4">Trade Account</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
@@ -198,9 +216,9 @@ export function FinanceDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold text-orange-600">
-                    {outstandingBalance.accountsReceivable.toFixed(2)}
+                    {tradeAccount.accountsReceivable.toFixed(2)}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">Revenue - Inflow (owed to us)</p>
+                  <p className="text-sm text-gray-500 mt-1">Unpaid sales invoices</p>
                 </CardContent>
               </Card>
 
@@ -212,9 +230,105 @@ export function FinanceDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold text-purple-600">
-                    {outstandingBalance.accountsPayable.toFixed(2)}
+                    {tradeAccount.accountsPayable.toFixed(2)}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">Expenses - Outflow (we owe)</p>
+                  <p className="text-sm text-gray-500 mt-1">Unpaid purchases</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Outstanding Balance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-3xl font-bold ${tradeAccount.outstandingBalance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                    {tradeAccount.outstandingBalance.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">A/R - A/P</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Deferred Items Section */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Deferred Items</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Unearned Revenue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    {deferredItems.unearnedRevenue.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Advance payments from customers</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Prepaid Expenses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-yellow-600">
+                    {deferredItems.prepaidExpenses.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Advance payments to suppliers</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Net Deferred Position
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-3xl font-bold ${deferredItems.netDeferredPosition >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                    {deferredItems.netDeferredPosition.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">U/R - P/E</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Balance Sheet Position Section */}
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Balance Sheet Position</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Current Assets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-600">
+                    {balanceSheetPosition.currentAssets.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">Cash + A/R</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Current Liabilities
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-red-600">
+                    {balanceSheetPosition.currentLiabilities.toFixed(2)}
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">A/P + U/R</p>
                 </CardContent>
               </Card>
 
@@ -225,10 +339,10 @@ export function FinanceDashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className={`text-3xl font-bold ${outstandingBalance.netWorkingCapital >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                    {outstandingBalance.netWorkingCapital.toFixed(2)}
+                  <p className={`text-3xl font-bold ${balanceSheetPosition.netWorkingCapital >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                    {balanceSheetPosition.netWorkingCapital.toFixed(2)}
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">A/R - A/P</p>
+                  <p className="text-sm text-gray-500 mt-1">C/A - C/L</p>
                 </CardContent>
               </Card>
             </div>

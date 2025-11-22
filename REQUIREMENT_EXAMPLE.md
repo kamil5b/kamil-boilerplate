@@ -202,14 +202,18 @@ Create CRUD Dashboard:
         - Inflow
         - Outflow
         - Net Cash Flow
-    - Outstanding Balance (from transaction-payment)
+    - Trade Account (from transaction-payment)
         - Accounts Receivable (Revenue - Inflow)
         - Accounts Payable (Expenses - Outflow)
-        - Net Working Capital (A/R - A/P)
+        - Outstanding Balance (A/R - A/P)
     - Deferred Items
         - Unearned Revenue (Inflow - Revenue)
         - Prepaid Expenses (Outflow - Expenses)
         - Net Deferred Position (U/R - P/E)
+    - Balance Sheet Position
+        - Current Assets (A/R + U/R)
+        - Current Liabilities (A/P + P/E)
+        - Net Working Capital (C/A - C/L)
 
 
 

@@ -10,10 +10,22 @@ export interface CashflowReport {
   netCashFlow: number; // Inflow - Outflow
 }
 
-export interface OutstandingBalance {
+export interface TradeAccount {
   accountsReceivable: number; // Revenue - Inflow (money customers owe us)
   accountsPayable: number; // Expenses - Outflow (money we owe suppliers)
-  netWorkingCapital: number; // A/R - A/P
+  outstandingBalance: number; // A/R - A/P
+}
+
+export interface DeferredItems {
+  unearnedRevenue: number; // Inflow - Revenue (payments received before earning)
+  prepaidExpenses: number; // Outflow - Expenses (payments made before incurring)
+  netDeferredPosition: number; // U/R - P/E
+}
+
+export interface BalanceSheetPosition {
+  currentAssets: number; // A/R + U/R
+  currentLiabilities: number; // A/P + P/E
+  netWorkingCapital: number; // C/A - C/L
 }
 
 export interface FinanceDashboardResponse {
@@ -23,6 +35,8 @@ export interface FinanceDashboardResponse {
   data: {
     grossSales: GrossSales;
     cashflowReport: CashflowReport;
-    outstandingBalance: OutstandingBalance;
+    tradeAccount: TradeAccount;
+    deferredItems: DeferredItems;
+    balanceSheetPosition: BalanceSheetPosition;
   };
 }
