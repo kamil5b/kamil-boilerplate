@@ -2,6 +2,54 @@ import { PoolClient } from "pg";
 import { Transaction, TransactionItem, Discount } from "@/shared/entities";
 import { GetTransactionsRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to Transaction entity (camelCase)
+ */
+function mapRowToTransaction(row: any): Transaction {
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    subtotal: row.subtotal,
+    totalTax: row.total_tax,
+    grandTotal: row.grand_total,
+    type: row.type,
+    status: row.status,
+    remark: row.remark,
+    createdAt: row.created_at,
+    createdBy: row.created_by,
+  };
+}
+
+/**
+ * Map database row (snake_case) to TransactionItem entity (camelCase)
+ */
+function mapRowToTransactionItem(row: any): TransactionItem {
+  return {
+    id: row.id,
+    transactionId: row.transaction_id,
+    productId: row.product_id,
+    quantity: row.quantity,
+    unitQuantityId: row.unit_quantity_id,
+    pricePerUnit: row.price_per_unit,
+    total: row.total,
+    remark: row.remark,
+  };
+}
+
+/**
+ * Map database row (snake_case) to Discount entity (camelCase)
+ */
+function mapRowToDiscount(row: any): Discount {
+  return {
+    id: row.id,
+    transactionId: row.transaction_id,
+    type: row.type,
+    percentage: row.percentage,
+    amount: row.amount,
+    transactionItemId: row.transaction_item_id,
+  };
+}
+
 export interface TransactionRepository {
   findById(client: PoolClient, id: string): Promise<any | null>;
   findAll(client: PoolClient, params: GetTransactionsRequest): Promise<{ transactions: any[]; total: number }>;
@@ -96,7 +144,7 @@ export function createTransactionRepository(): TransactionRepository {
          RETURNING *`,
         [data.customerId, data.subtotal, data.totalTax, data.grandTotal, data.type, data.status, data.remark, data.createdBy]
       );
-      return result.rows[0];
+      return mapRowToTransaction(result.rows[0]);
     },
 
     async createTransactionItem(client, data) {
@@ -106,7 +154,7 @@ export function createTransactionRepository(): TransactionRepository {
          RETURNING *`,
         [data.transactionId, data.productId, data.quantity, data.unitQuantityId, data.pricePerUnit, data.total, data.remark]
       );
-      return result.rows[0];
+      return mapRowToTransactionItem(result.rows[0]);
     },
 
     async createDiscount(client, data) {
@@ -116,7 +164,7 @@ export function createTransactionRepository(): TransactionRepository {
          RETURNING *`,
         [data.transactionId, data.type, data.percentage, data.amount, data.transactionItemId]
       );
-      return result.rows[0];
+      return mapRowToDiscount(result.rows[0]);
     },
 
     async getTransactionItems(client, transactionId) {
@@ -136,7 +184,7 @@ export function createTransactionRepository(): TransactionRepository {
         `SELECT * FROM discounts WHERE transaction_id = $1`,
         [transactionId]
       );
-      return result.rows;
+      return result.rows.map(mapRowToDiscount);
     },
 
     async updateStatus(client, id, status) {
@@ -144,7 +192,7 @@ export function createTransactionRepository(): TransactionRepository {
         `UPDATE transactions SET status = $1 WHERE id = $2 RETURNING *`,
         [status, id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToTransaction(result.rows[0]) : null;
     },
 
     async getSummary(client, startDate, endDate) {

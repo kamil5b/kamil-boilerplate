@@ -2,6 +2,24 @@ import { PoolClient } from "pg";
 import { Tax } from "@/shared/entities";
 import { GetTaxesRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to Tax entity (camelCase)
+ */
+function mapRowToTax(row: any): Tax {
+  return {
+    id: row.id,
+    name: row.name,
+    value: row.value,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface TaxRepository {
   findById(client: PoolClient, id: string): Promise<Tax | null>;
   findAll(client: PoolClient, params: GetTaxesRequest): Promise<{ taxes: Tax[]; total: number }>;
@@ -18,7 +36,7 @@ export function createTaxRepository(): TaxRepository {
         "SELECT * FROM taxes WHERE id = $1 AND deleted_at IS NULL",
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToTax(result.rows[0]) : null;
     },
 
     async findByIds(client, ids) {
@@ -27,7 +45,7 @@ export function createTaxRepository(): TaxRepository {
         "SELECT * FROM taxes WHERE id = ANY($1) AND deleted_at IS NULL",
         [ids]
       );
-      return result.rows;
+      return result.rows.map(mapRowToTax);
     },
 
     async findAll(client, params) {
@@ -53,7 +71,7 @@ export function createTaxRepository(): TaxRepository {
       );
 
       return {
-        taxes: result.rows,
+        taxes: result.rows.map(mapRowToTax),
         total: Number.parseInt(countResult.rows[0].count),
       };
     },
@@ -65,7 +83,7 @@ export function createTaxRepository(): TaxRepository {
          RETURNING *`,
         [data.name, data.value, data.remark, data.createdBy, data.updatedBy]
       );
-      return result.rows[0];
+      return mapRowToTax(result.rows[0]);
     },
 
     async update(client, id, data) {
@@ -100,7 +118,7 @@ export function createTaxRepository(): TaxRepository {
         values
       );
 
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToTax(result.rows[0]) : null;
     },
 
     async delete(client, id, deletedBy) {

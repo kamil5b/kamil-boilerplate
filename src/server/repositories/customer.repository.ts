@@ -2,6 +2,27 @@ import { PoolClient } from "pg";
 import { Customer } from "@/shared/entities";
 import { GetCustomersRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to Customer entity (camelCase)
+ */
+function mapRowToCustomer(row: any): Customer {
+  return {
+    id: row.id,
+    name: row.name,
+    phoneNumber: row.phone_number,
+    email: row.email,
+    address: row.address,
+    description: row.description,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface CustomerRepository {
   findById(client: PoolClient, id: string): Promise<Customer | null>;
   findAll(client: PoolClient, params: GetCustomersRequest): Promise<{ customers: Customer[]; total: number }>;
@@ -17,7 +38,7 @@ export function createCustomerRepository(): CustomerRepository {
         "SELECT * FROM customers WHERE id = $1 AND deleted_at IS NULL",
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToCustomer(result.rows[0]) : null;
     },
 
     async findAll(client, params) {
@@ -43,7 +64,7 @@ export function createCustomerRepository(): CustomerRepository {
       );
 
       return {
-        customers: result.rows,
+        customers: result.rows.map(mapRowToCustomer),
         total: Number.parseInt(countResult.rows[0].count),
       };
     },
@@ -55,7 +76,7 @@ export function createCustomerRepository(): CustomerRepository {
          RETURNING *`,
         [data.name, data.phoneNumber, data.email, data.address, data.description, data.remark, data.createdBy, data.updatedBy]
       );
-      return result.rows[0];
+      return mapRowToCustomer(result.rows[0]);
     },
 
     async update(client, id, data) {
@@ -102,7 +123,7 @@ export function createCustomerRepository(): CustomerRepository {
         values
       );
 
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToCustomer(result.rows[0]) : null;
     },
 
     async delete(client, id, deletedBy) {

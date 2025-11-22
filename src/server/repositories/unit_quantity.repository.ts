@@ -2,6 +2,23 @@ import { PoolClient } from "pg";
 import { UnitQuantity } from "@/shared/entities";
 import { GetUnitQuantitiesRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to UnitQuantity entity (camelCase)
+ */
+function mapRowToUnitQuantity(row: any): UnitQuantity {
+  return {
+    id: row.id,
+    name: row.name,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface UnitQuantityRepository {
   findById(client: PoolClient, id: string): Promise<UnitQuantity | null>;
   findAll(client: PoolClient, params: GetUnitQuantitiesRequest): Promise<{ unitQuantities: UnitQuantity[]; total: number }>;
@@ -17,7 +34,7 @@ export function createUnitQuantityRepository(): UnitQuantityRepository {
         "SELECT * FROM unit_quantities WHERE id = $1 AND deleted_at IS NULL",
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUnitQuantity(result.rows[0]) : null;
     },
 
     async findAll(client, params) {
@@ -43,7 +60,7 @@ export function createUnitQuantityRepository(): UnitQuantityRepository {
       );
 
       return {
-        unitQuantities: result.rows,
+        unitQuantities: result.rows.map(mapRowToUnitQuantity),
         total: Number.parseInt(countResult.rows[0].count),
       };
     },
@@ -55,7 +72,7 @@ export function createUnitQuantityRepository(): UnitQuantityRepository {
          RETURNING *`,
         [data.name, data.remark, data.createdBy, data.updatedBy]
       );
-      return result.rows[0];
+      return mapRowToUnitQuantity(result.rows[0]);
     },
 
     async update(client, id, data) {
@@ -86,7 +103,7 @@ export function createUnitQuantityRepository(): UnitQuantityRepository {
         values
       );
 
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUnitQuantity(result.rows[0]) : null;
     },
 
     async delete(client, id, deletedBy) {

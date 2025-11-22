@@ -2,6 +2,33 @@ import { PoolClient } from "pg";
 import { Payment, PaymentDetail } from "@/shared/entities";
 import { GetPaymentsRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to Payment entity (camelCase)
+ */
+function mapRowToPayment(row: any): Payment {
+  return {
+    id: row.id,
+    transactionId: row.transaction_id,
+    type: row.type,
+    amount: row.amount,
+    remark: row.remark,
+    createdAt: row.created_at,
+    createdBy: row.created_by,
+  };
+}
+
+/**
+ * Map database row (snake_case) to PaymentDetail entity (camelCase)
+ */
+function mapRowToPaymentDetail(row: any): PaymentDetail {
+  return {
+    id: row.id,
+    paymentId: row.payment_id,
+    identifier: row.identifier,
+    value: row.value,
+  };
+}
+
 export interface PaymentRepository {
   findById(client: PoolClient, id: string): Promise<any | null>;
   findAll(client: PoolClient, params: GetPaymentsRequest): Promise<{ payments: any[]; total: number }>;
@@ -84,7 +111,7 @@ export function createPaymentRepository(): PaymentRepository {
          RETURNING *`,
         [data.transactionId, data.type, data.amount, data.remark, data.createdBy]
       );
-      return result.rows[0];
+      return mapRowToPayment(result.rows[0]);
     },
 
     async createPaymentDetail(client, data) {
@@ -94,7 +121,7 @@ export function createPaymentRepository(): PaymentRepository {
          RETURNING *`,
         [data.paymentId, data.identifier, data.value]
       );
-      return result.rows[0];
+      return mapRowToPaymentDetail(result.rows[0]);
     },
 
     async getPaymentDetails(client, paymentId) {
@@ -102,7 +129,7 @@ export function createPaymentRepository(): PaymentRepository {
         `SELECT * FROM payment_details WHERE payment_id = $1`,
         [paymentId]
       );
-      return result.rows;
+      return result.rows.map(mapRowToPaymentDetail);
     },
 
     async getTotalPaidForTransaction(client, transactionId) {

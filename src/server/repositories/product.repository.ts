@@ -2,6 +2,25 @@ import { PoolClient } from "pg";
 import { Product } from "@/shared/entities";
 import { GetProductsRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to Product entity (camelCase)
+ */
+function mapRowToProduct(row: any): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    type: row.type,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface ProductRepository {
   findById(client: PoolClient, id: string): Promise<Product | null>;
   findAll(client: PoolClient, params: GetProductsRequest): Promise<{ products: Product[]; total: number }>;
@@ -17,7 +36,7 @@ export function createProductRepository(): ProductRepository {
         "SELECT * FROM products WHERE id = $1 AND deleted_at IS NULL",
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToProduct(result.rows[0]) : null;
     },
 
     async findAll(client, params) {
@@ -51,7 +70,7 @@ export function createProductRepository(): ProductRepository {
       );
 
       return {
-        products: result.rows,
+        products: result.rows.map(mapRowToProduct),
         total: Number.parseInt(countResult.rows[0].count),
       };
     },
@@ -63,7 +82,7 @@ export function createProductRepository(): ProductRepository {
          RETURNING *`,
         [data.name, data.description, data.type, data.remark, data.createdBy, data.updatedBy]
       );
-      return result.rows[0];
+      return mapRowToProduct(result.rows[0]);
     },
 
     async update(client, id, data) {
@@ -102,7 +121,7 @@ export function createProductRepository(): ProductRepository {
         values
       );
 
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToProduct(result.rows[0]) : null;
     },
 
     async delete(client, id, deletedBy) {

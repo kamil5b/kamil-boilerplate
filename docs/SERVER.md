@@ -166,6 +166,30 @@ export function createUserService(): UserService {
 }
 
 // Repository (SQL only - within transaction)
+/**
+ * Map database row (snake_case) to User entity (camelCase)
+ */
+function mapRowToUser(row: any): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    passwordHash: row.password_hash,
+    role: row.role,
+    isActive: row.is_active,
+    activationToken: row.activation_token,
+    resetPasswordToken: row.reset_password_token,
+    resetPasswordExpires: row.reset_password_expires,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface UserRepository {
   findAll(client: PoolClient, params: {...}): Promise<{ users: User[]; total: number }>;
   findById(client: PoolClient, id: string): Promise<User | null>;
@@ -186,7 +210,7 @@ export function createUserRepository(): UserRepository {
       );
       
       return {
-        users: result.rows.map(mapDbRowToUser),
+        users: result.rows.map(mapRowToUser),
         total: parseInt(countResult.rows[0].count)
       };
     }
@@ -435,6 +459,26 @@ To add a new domain (e.g., "products"):
 import type { PoolClient } from 'pg';
 import type { Product } from '@/shared';
 
+/**
+ * Map database row (snake_case) to Product entity (camelCase)
+ * CRITICAL: PostgreSQL returns snake_case column names, TypeScript expects camelCase
+ */
+function mapRowToProduct(row: any): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    type: row.type,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export interface ProductRepository {
   findAll(client: PoolClient, params: {...}): Promise<{ products: Product[]; total: number }>;
   findById(client: PoolClient, id: string): Promise<Product | null>;
@@ -457,7 +501,7 @@ export function createProductRepository(): ProductRepository {
       );
       
       return {
-        products: result.rows,
+        products: result.rows.map(mapRowToProduct),
         total: parseInt(countResult.rows[0].count)
       };
     },
@@ -467,7 +511,7 @@ export function createProductRepository(): ProductRepository {
         'SELECT * FROM products WHERE id = $1 AND deleted_at IS NULL',
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToProduct(result.rows[0]) : null;
     },
     // ... other methods
   };
@@ -593,6 +637,85 @@ export async function GET(
 ```
 
 ## 🔍 Common Patterns
+
+### Database Column Mapping Pattern (CRITICAL)
+
+**Problem**: PostgreSQL returns column names in snake_case (e.g., `created_at`, `password_hash`), but TypeScript entities use camelCase (e.g., `createdAt`, `passwordHash`).
+
+**Solution**: Every repository MUST have a mapping function to convert database rows to entity objects.
+
+```typescript
+// ALWAYS include this mapping function at the top of each repository
+/**
+ * Map database row (snake_case) to Entity (camelCase)
+ */
+function mapRowToUser(row: any): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    passwordHash: row.password_hash,        // snake_case → camelCase
+    role: row.role,
+    isActive: row.is_active,                // snake_case → camelCase
+    activationToken: row.activation_token,  // snake_case → camelCase
+    resetPasswordToken: row.reset_password_token,
+    resetPasswordExpires: row.reset_password_expires,
+    remark: row.remark,
+    createdAt: row.created_at,              // snake_case → camelCase
+    updatedAt: row.updated_at,              // snake_case → camelCase
+    createdBy: row.created_by,              // snake_case → camelCase
+    updatedBy: row.updated_by,              // snake_case → camelCase
+    deletedAt: row.deleted_at,              // snake_case → camelCase
+    deletedBy: row.deleted_by,              // snake_case → camelCase
+  };
+}
+
+// Apply mapping to ALL query results
+async findById(client, id) {
+  const result = await client.query(
+    'SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL',
+    [id]
+  );
+  // ALWAYS map the result
+  return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
+}
+
+async findAll(client, params) {
+  const result = await client.query(
+    'SELECT * FROM users WHERE deleted_at IS NULL',
+    []
+  );
+  // ALWAYS map all rows
+  return {
+    users: result.rows.map(mapRowToUser),
+    total: result.rows.length
+  };
+}
+
+async create(client, data) {
+  const result = await client.query(
+    'INSERT INTO users (...) VALUES (...) RETURNING *',
+    [...]
+  );
+  // ALWAYS map the created row
+  return mapRowToUser(result.rows[0]);
+}
+
+async update(client, id, data) {
+  const result = await client.query(
+    'UPDATE users SET ... RETURNING *',
+    [...]
+  );
+  // ALWAYS map the updated row
+  return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
+}
+```
+
+**Why This is Critical**:
+- Without mapping, accessing `user.passwordHash` returns `undefined` (causes login failures)
+- Database returns `user.password_hash` but code expects `user.passwordHash`
+- Missing mapping causes runtime errors that are hard to debug
+- ALL repositories must implement this pattern consistently
 
 ### Transaction Pattern (CRITICAL)
 
@@ -920,6 +1043,8 @@ Before committing code, ensure:
 - [ ] ALL methods accept `PoolClient` as first parameter
 - [ ] Uses client parameter for all queries (not pool)
 - [ ] Only contains SQL queries and data mapping
+- [ ] Has `mapRowTo[Entity]` function to convert snake_case to camelCase
+- [ ] ALL query results are mapped using mapping function
 - [ ] NO business logic
 - [ ] NO transaction management (BEGIN/COMMIT/ROLLBACK)
 - [ ] NO validation logic
@@ -954,11 +1079,13 @@ When adding new features, **STRICTLY** follow these rules:
 1. ✅ Accept `PoolClient` as first parameter
 2. ✅ Use client for ALL queries
 3. ✅ Use parameterized queries: `client.query('SELECT * FROM users WHERE id = $1', [id])`
-4. ✅ Map database rows to domain entities
-5. ❌ NO business logic
-6. ❌ NO validation
-7. ❌ NO transaction control (BEGIN/COMMIT/ROLLBACK)
-8. ❌ NO direct pool usage
+4. ✅ Create `mapRowTo[Entity]` function to convert snake_case to camelCase
+5. ✅ Apply mapping function to ALL query results before returning
+6. ✅ Map database rows to domain entities (PostgreSQL returns snake_case, TypeScript expects camelCase)
+7. ❌ NO business logic
+8. ❌ NO validation
+9. ❌ NO transaction control (BEGIN/COMMIT/ROLLBACK)
+10. ❌ NO direct pool usage
 
 ### General Rules
 1. Use TypeScript interfaces for all layer contracts

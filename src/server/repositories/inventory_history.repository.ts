@@ -2,6 +2,21 @@ import { PoolClient } from "pg";
 import { InventoryHistory } from "@/shared/entities";
 import { GetInventoryHistoriesRequest } from "@/shared/request";
 
+/**
+ * Map database row (snake_case) to InventoryHistory entity (camelCase)
+ */
+function mapRowToInventoryHistory(row: any): InventoryHistory {
+  return {
+    id: row.id,
+    productId: row.product_id,
+    quantity: row.quantity,
+    unitQuantityId: row.unit_quantity_id,
+    remark: row.remark,
+    createdAt: row.created_at,
+    createdBy: row.created_by,
+  };
+}
+
 export interface InventoryHistoryRepository {
   findById(client: PoolClient, id: string): Promise<InventoryHistory | null>;
   findAll(client: PoolClient, params: GetInventoryHistoriesRequest): Promise<{ histories: InventoryHistory[]; total: number }>;
@@ -88,7 +103,7 @@ export function createInventoryHistoryRepository(): InventoryHistoryRepository {
          RETURNING *`,
         [data.productId, data.quantity, data.unitQuantityId, data.remark, data.createdBy]
       );
-      return result.rows[0];
+      return mapRowToInventoryHistory(result.rows[0]);
     },
 
     async createBatch(client, items) {
@@ -113,7 +128,7 @@ export function createInventoryHistoryRepository(): InventoryHistoryRepository {
         values
       );
 
-      return result.rows;
+      return result.rows.map(mapRowToInventoryHistory);
     },
 
     async getSummaryByProduct(client, productId) {

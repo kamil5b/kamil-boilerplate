@@ -13,6 +13,30 @@ export interface UserRepository {
   delete(client: PoolClient, id: string, deletedBy: string): Promise<boolean>;
 }
 
+/**
+ * Map database row (snake_case) to User entity (camelCase)
+ */
+function mapRowToUser(row: any): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    passwordHash: row.password_hash,
+    role: row.role,
+    isActive: row.is_active,
+    activationToken: row.activation_token,
+    resetPasswordToken: row.reset_password_token,
+    resetPasswordExpires: row.reset_password_expires,
+    remark: row.remark,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    createdBy: row.created_by,
+    updatedBy: row.updated_by,
+    deletedAt: row.deleted_at,
+    deletedBy: row.deleted_by,
+  };
+}
+
 export function createUserRepository(): UserRepository {
   return {
     async findById(client, id) {
@@ -20,7 +44,7 @@ export function createUserRepository(): UserRepository {
         "SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL",
         [id]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
     async findByEmail(client, email) {
@@ -28,7 +52,7 @@ export function createUserRepository(): UserRepository {
         "SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL",
         [email]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
     async findByActivationToken(client, token) {
@@ -36,7 +60,7 @@ export function createUserRepository(): UserRepository {
         "SELECT * FROM users WHERE activation_token = $1 AND deleted_at IS NULL",
         [token]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
     async findByResetToken(client, token) {
@@ -44,7 +68,7 @@ export function createUserRepository(): UserRepository {
         "SELECT * FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW() AND deleted_at IS NULL",
         [token]
       );
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
     async findAll(client, params) {
@@ -78,7 +102,7 @@ export function createUserRepository(): UserRepository {
       );
 
       return {
-        users: result.rows,
+        users: result.rows.map(mapRowToUser),
         total: Number.parseInt(countResult.rows[0].count),
       };
     },
@@ -100,7 +124,7 @@ export function createUserRepository(): UserRepository {
           data.updatedBy,
         ]
       );
-      return result.rows[0];
+      return mapRowToUser(result.rows[0]);
     },
 
     async update(client, id, data) {
@@ -159,7 +183,7 @@ export function createUserRepository(): UserRepository {
         values
       );
 
-      return result.rows[0] || null;
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
     async delete(client, id, deletedBy) {

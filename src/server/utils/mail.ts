@@ -73,6 +73,19 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     console.log(`Email sent successfully to ${options.to}`);
   } catch (error) {
     console.error("Error sending email:", error);
+    
+    // Fallback: Log complete email details when SMTP fails
+    console.error("\n============== FAILED EMAIL LOG ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("To:", options.to);
+    console.error("Subject:", options.subject);
+    console.error("Text Content:");
+    console.error(options.text || "(none)");
+    console.error("\nHTML Content:");
+    console.error(options.html || "(none)");
+    console.error("\nSMTP Error:", error instanceof Error ? error.message : String(error));
+    console.error("=============================================\n");
+    
     throw new Error("Failed to send email");
   }
 }
@@ -83,6 +96,8 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 export async function sendActivationEmail(email: string, activationToken: string): Promise<void> {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const activationUrl = `${frontendUrl}/activate?token=${activationToken}`;
+  
+  try {
 
   const html = `
     <!DOCTYPE html>
@@ -123,12 +138,22 @@ export async function sendActivationEmail(email: string, activationToken: string
     If you didn't create an account, please ignore this email.
   `;
 
-  await sendEmail({
-    to: email,
-    subject: "Activate Your Account",
-    html,
-    text,
-  });
+    await sendEmail({
+      to: email,
+      subject: "Activate Your Account",
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("\n============== FAILED ACTIVATION EMAIL ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Recipient:", email);
+    console.error("Activation Token:", activationToken);
+    console.error("Activation URL:", activationUrl);
+    console.error("Error:", error instanceof Error ? error.message : String(error));
+    console.error("====================================================\n");
+    throw error;
+  }
 }
 
 /**
@@ -137,6 +162,8 @@ export async function sendActivationEmail(email: string, activationToken: string
 export async function sendPasswordResetEmail(email: string, resetToken: string): Promise<void> {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+  
+  try {
 
   const html = `
     <!DOCTYPE html>
@@ -180,12 +207,22 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
     If you didn't request a password reset, please ignore this email and your password will remain unchanged.
   `;
 
-  await sendEmail({
-    to: email,
-    subject: "Reset Your Password",
-    html,
-    text,
-  });
+    await sendEmail({
+      to: email,
+      subject: "Reset Your Password",
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("\n============== FAILED PASSWORD RESET EMAIL ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Recipient:", email);
+    console.error("Reset Token:", resetToken);
+    console.error("Reset URL:", resetUrl);
+    console.error("Error:", error instanceof Error ? error.message : String(error));
+    console.error("========================================================\n");
+    throw error;
+  }
 }
 
 /**
@@ -194,6 +231,8 @@ export async function sendPasswordResetEmail(email: string, resetToken: string):
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const loginUrl = `${frontendUrl}/login`;
+  
+  try {
 
   const html = `
     <!DOCTYPE html>
@@ -233,12 +272,22 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
     If you have any questions, feel free to contact our support team.
   `;
 
-  await sendEmail({
-    to: email,
-    subject: "Welcome to Our Platform",
-    html,
-    text,
-  });
+    await sendEmail({
+      to: email,
+      subject: "Welcome to Our Platform",
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("\n============== FAILED WELCOME EMAIL ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Recipient:", email);
+    console.error("User Name:", name);
+    console.error("Login URL:", loginUrl);
+    console.error("Error:", error instanceof Error ? error.message : String(error));
+    console.error("==================================================\n");
+    throw error;
+  }
 }
 
 /**
@@ -247,6 +296,8 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
 export async function sendPasswordChangedEmail(email: string, name: string): Promise<void> {
   const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const loginUrl = `${frontendUrl}/login`;
+  
+  try {
 
   const html = `
     <!DOCTYPE html>
@@ -292,12 +343,22 @@ export async function sendPasswordChangedEmail(email: string, name: string): Pro
     This is an automated notification. Please do not reply to this email.
   `;
 
-  await sendEmail({
-    to: email,
-    subject: "Password Changed Successfully",
-    html,
-    text,
-  });
+    await sendEmail({
+      to: email,
+      subject: "Password Changed Successfully",
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("\n============== FAILED PASSWORD CHANGED EMAIL ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Recipient:", email);
+    console.error("User Name:", name);
+    console.error("Login URL:", loginUrl);
+    console.error("Error:", error instanceof Error ? error.message : String(error));
+    console.error("===========================================================\n");
+    throw error;
+  }
 }
 
 /**
