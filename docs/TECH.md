@@ -31,12 +31,18 @@ Controller (backend):
 View (frontend):
 - folder name inside src: `client`
 - Modular architecture with organized folders:
-  - `client/pages/` - Page components (25 page components)
-    - List pages: UsersListPage, CustomersListPage, ProductsListPage, etc.
-    - Form pages: UserFormPage, CustomerFormPage, ProductFormPage, etc.
-    - Detail pages: TransactionDetailPage, PaymentDetailPage, ProductInventoryDetailPage, etc.
-    - Dashboard pages: DashboardPage, TransactionDashboardPage
-    - Auth pages: LoginPage, RegisterPage
+  - `client/pages/` - Page components organized by domain (25+ page components)
+    - `pages/auth/` - Auth pages (LoginPage, RegisterPage)
+    - `pages/dashboard/` - Dashboard page (DashboardPage)
+    - `pages/user/` - User management (UsersListPage, UserFormPage)
+    - `pages/customer/` - Customer management (CustomersListPage, CustomerFormPage)
+    - `pages/product/` - Product management (ProductsListPage, ProductFormPage, ProductInventoryDetailPage, ProductTransactionDetailPage)
+    - `pages/unit-quantity/` - Unit quantity management (UnitQuantitiesListPage, UnitQuantityFormPage)
+    - `pages/tax/` - Tax management (TaxesListPage, TaxFormPage)
+    - `pages/inventory/` - Inventory management (InventoryHistoriesListPage, InventoryManipulatePage, InventorySummaryPage)
+    - `pages/transaction/` - Transaction management (TransactionsListPage, TransactionFormPage, TransactionDetailPage, TransactionDashboardPage)
+    - `pages/payment/` - Payment management (PaymentsListPage, PaymentFormPage, PaymentDetailPage, PaymentDashboardPage)
+    - `pages/finance/` - Finance dashboard (FinanceDashboardPage)
   - `client/layouts/` - Layout components (ProtectedLayout, PublicLayout)
   - `client/components/` - Reusable UI components
     - shadcn/ui base components (ui folder)

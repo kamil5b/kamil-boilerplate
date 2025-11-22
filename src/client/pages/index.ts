@@ -1,27 +1,32 @@
-export * from "./LoginPage";
-export * from "./RegisterPage";
-export * from "./UsersListPage";
-export * from "./UserFormPage";
-export * from "./UnitQuantitiesListPage";
-export * from "./UnitQuantityFormPage";
-export * from "./CustomersListPage";
-export * from "./CustomerFormPage";
-export * from "./ProductsListPage";
-export * from "./ProductFormPage";
-export * from "./TaxesListPage";
-export * from "./TaxFormPage";
-export * from "./InventoryHistoriesListPage";
-export * from "./InventorySummaryPage";
-export * from "./InventoryManipulatePage";
-export * from "./ProductInventoryDetailPage";
-export * from "./TransactionsListPage";
-export * from "./TransactionFormPage";
-export * from "./TransactionDetailPage";
-export * from "./TransactionDashboardPage";
-export * from "./ProductTransactionDetailPage";
-export * from "./PaymentsListPage";
-export * from "./PaymentFormPage";
-export * from "./PaymentDetailPage";
-export * from "./PaymentDashboardPage";
-export * from "./FinanceDashboardPage";
-export * from "./DashboardPage";
+// Auth
+export * from "./auth";
+
+// Dashboard
+export * from "./dashboard";
+
+// User Management
+export * from "./user";
+
+// Customer Management
+export * from "./customer";
+
+// Product Management
+export * from "./product";
+
+// Unit Quantity Management
+export * from "./unit-quantity";
+
+// Tax Management
+export * from "./tax";
+
+// Inventory Management
+export * from "./inventory";
+
+// Transaction Management
+export * from "./transaction";
+
+// Payment Management
+export * from "./payment";
+
+// Finance
+export * from "./finance";

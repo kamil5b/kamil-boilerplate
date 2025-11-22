@@ -12,7 +12,19 @@ client/
 ├── helpers/         # Utility functions
 ├── hooks/           # Custom React hooks
 ├── layouts/         # Layout components
-├── pages/           # Page-level components
+├── pages/           # Page-level components (organized by domain)
+│   ├── auth/        # Authentication pages
+│   ├── dashboard/   # Dashboard pages
+│   ├── user/        # User management pages
+│   ├── customer/    # Customer management pages
+│   ├── product/     # Product management pages
+│   ├── unit-quantity/ # Unit quantity pages
+│   ├── tax/         # Tax management pages
+│   ├── inventory/   # Inventory management pages
+│   ├── transaction/ # Transaction pages
+│   ├── payment/     # Payment pages
+│   ├── finance/     # Finance pages
+│   └── index.ts     # Main export file
 ├── index.ts         # Main export file
 └── utils.ts         # Utility functions (cn)
 ```
@@ -30,21 +42,22 @@ App Route → Page Component → Layout → Components → UI Elements
 ### Layer Responsibilities
 
 1. **Pages** (`pages/`)
-   - Page-level components with business logic
+   - Page-level components with business logic organized by domain
    - Handle data fetching and state management
    - Compose multiple components
    - Receive callback props for navigation
-   - **25 Page Components**:
-     - Auth: `LoginPage`, `RegisterPage`
-     - Dashboard: `DashboardPage`, `TransactionDashboardPage`
-     - Users: `UsersListPage`, `UserFormPage`
-     - Customers: `CustomersListPage`, `CustomerFormPage`
-     - Products: `ProductsListPage`, `ProductFormPage`, `ProductInventoryDetailPage`, `ProductTransactionDetailPage`
-     - Unit Quantities: `UnitQuantitiesListPage`, `UnitQuantityFormPage`
-     - Taxes: `TaxesListPage`, `TaxFormPage`
-     - Inventory: `InventoryHistoriesListPage`, `InventoryManipulatePage`, `InventorySummaryPage`
-     - Transactions: `TransactionsListPage`, `TransactionFormPage`, `TransactionDetailPage`
-     - Payments: `PaymentsListPage`, `PaymentFormPage`, `PaymentDetailPage`
+   - **Organized by Domain** (25+ Page Components):
+     - `pages/auth/` - Auth: `LoginPage`, `RegisterPage`
+     - `pages/dashboard/` - Main: `DashboardPage`
+     - `pages/user/` - Users: `UsersListPage`, `UserFormPage`
+     - `pages/customer/` - Customers: `CustomersListPage`, `CustomerFormPage`
+     - `pages/product/` - Products: `ProductsListPage`, `ProductFormPage`, `ProductInventoryDetailPage`, `ProductTransactionDetailPage`
+     - `pages/unit-quantity/` - Unit Quantities: `UnitQuantitiesListPage`, `UnitQuantityFormPage`
+     - `pages/tax/` - Taxes: `TaxesListPage`, `TaxFormPage`
+     - `pages/inventory/` - Inventory: `InventoryHistoriesListPage`, `InventoryManipulatePage`, `InventorySummaryPage`
+     - `pages/transaction/` - Transactions: `TransactionsListPage`, `TransactionFormPage`, `TransactionDetailPage`, `TransactionDashboardPage`
+     - `pages/payment/` - Payments: `PaymentsListPage`, `PaymentFormPage`, `PaymentDetailPage`, `PaymentDashboardPage`
+     - `pages/finance/` - Finance: `FinanceDashboardPage`
 
 2. **Layouts** (`layouts/`)
    - Wrap page content with common structure
@@ -687,13 +700,19 @@ export default function ClientRoute({ params }: { params: { id: string } }) {
 - Error handling
 - Navigation actions
 
-#### Available Pages
+#### Available Pages (Organized by Domain)
 
-- **Auth Pages**: `LoginPage`, `ForgotPasswordPage`, `ResetPasswordPage`
-- **User Pages**: `UsersListPage`, `UserFormPage`
-- **Client Pages**: `ClientsListPage`, `ClientFormPage`, `ClientDetailPage`
-- **Vendor Pages**: `VendorsListPage`, `VendorFormPage`, `VendorDetailPage`
-- **Purchase Order Pages**: `ClientPurchaseOrdersListPage`, `ClientPurchaseOrderFormPage`, `ClientPurchaseOrderDetailPage`
+- **Auth Pages** (`pages/auth/`): `LoginPage`, `RegisterPage`
+- **Dashboard Pages** (`pages/dashboard/`): `DashboardPage`
+- **User Pages** (`pages/user/`): `UsersListPage`, `UserFormPage`
+- **Customer Pages** (`pages/customer/`): `CustomersListPage`, `CustomerFormPage`
+- **Product Pages** (`pages/product/`): `ProductsListPage`, `ProductFormPage`, `ProductInventoryDetailPage`, `ProductTransactionDetailPage`
+- **Unit Quantity Pages** (`pages/unit-quantity/`): `UnitQuantitiesListPage`, `UnitQuantityFormPage`
+- **Tax Pages** (`pages/tax/`): `TaxesListPage`, `TaxFormPage`
+- **Inventory Pages** (`pages/inventory/`): `InventoryHistoriesListPage`, `InventoryManipulatePage`, `InventorySummaryPage`
+- **Transaction Pages** (`pages/transaction/`): `TransactionsListPage`, `TransactionFormPage`, `TransactionDetailPage`, `TransactionDashboardPage`
+- **Payment Pages** (`pages/payment/`): `PaymentsListPage`, `PaymentFormPage`, `PaymentDetailPage`, `PaymentDashboardPage`
+- **Finance Pages** (`pages/finance/`): `FinanceDashboardPage`
 
 ## 🚀 Usage in Next.js App Router
 
@@ -817,7 +836,7 @@ import { cn } from '@/client/utils';
 
 ### Adding a New List Page
 
-1. **Create the page component** (`pages/ProductsListPage.tsx`):
+1. **Create the page component** (`pages/product/ProductsListPage.tsx`):
 
 ```tsx
 "use client";
@@ -931,13 +950,19 @@ export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
 }
 ```
 
-2. **Export from index** (`pages/index.ts`):
+2. **Export from domain index** (`pages/product/index.ts`):
 
 ```tsx
 export * from './ProductsListPage';
 ```
 
-3. **Use in route** (`app/(protected)/products/page.tsx`):
+3. **Ensure exported from main index** (`pages/index.ts`):
+
+```tsx
+export * from './product';
+```
+
+4. **Use in route** (`app/(protected)/products/page.tsx`):
 
 ```tsx
 'use client';
@@ -962,7 +987,7 @@ export default function ProductsPage() {
 
 ### Adding a New Form Page
 
-1. **Create the page component** (`pages/ProductFormPage.tsx`):
+1. **Create the page component** (`pages/product/ProductFormPage.tsx`):
 
 ```tsx
 "use client";

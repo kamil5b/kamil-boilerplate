@@ -352,7 +352,8 @@ export async function DELETE(
 ## 5. Create the Pages
 
 ### 5.1 Create List Page Component
-- Location: `src/client/pages/<Names>ListPage.tsx`
+- Location: `src/client/pages/<domain>/<Names>ListPage.tsx` (organized by domain folder)
+  - Example: `src/client/pages/user/UsersListPage.tsx`, `src/client/pages/product/ProductsListPage.tsx`
 - Use `usePagination` hook from `@/client/hooks`
 - Use API helpers: `fetchPaginated`, `deleteResource` from `@/client/helpers`
 - Use shadcn/ui components from `@/client/components`:
@@ -370,7 +371,8 @@ export async function DELETE(
 - Include search functionality with debouncing
 - Add delete with confirmation dialog
 - Handle loading and error states
-- Export from `src/client/pages/index.ts`
+- Export from domain index: `src/client/pages/<domain>/index.ts`
+- Ensure exported from main index: `src/client/pages/index.ts`
 
 **Example:**
 ```typescript
@@ -486,7 +488,8 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
 ```
 
 ### 5.2 Create Form Page Component (Create & Edit)
-- Location: `src/client/pages/<Name>FormPage.tsx`
+- Location: `src/client/pages/<domain>/<Name>FormPage.tsx` (organized by domain folder)
+  - Example: `src/client/pages/user/UserFormPage.tsx`, `src/client/pages/product/ProductFormPage.tsx`
 - Accept optional `<name>Id` prop (undefined = create mode, string = edit mode)
 - Use API helpers: `fetchById`, `createResource`, `updateResource` from `@/client/helpers`
 - Use validation helpers from `@/client/helpers/validation`
@@ -504,7 +507,8 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
 - Handle form submission (create or update)
 - Accept `onSuccess` and `onCancel` callback props
 - Show loading states during data fetch and submission
-- Export from `src/client/pages/index.ts`
+- Export from domain index: `src/client/pages/<domain>/index.ts`
+- Ensure exported from main index: `src/client/pages/index.ts`
 
 **Example:**
 ```typescript
@@ -689,11 +693,17 @@ export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps)
 }
 ```
 
-### 5.3 Export from index file
+### 5.3 Export from index files
 ```typescript
-// pages/index.ts
+// pages/<domain>/index.ts
 export * from './<Names>ListPage';
 export * from './<Name>FormPage';
+```
+
+```typescript
+// pages/index.ts
+// Organized by domain
+export * from './<domain>';
 ```
 
 ### 5.4 Create App Routes
