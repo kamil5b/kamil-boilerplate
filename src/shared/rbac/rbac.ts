@@ -45,6 +45,8 @@ export const RBACPermissions: RBACPermission[] = [
       AccessPermission.MENU_PAYMENT,
       AccessPermission.CREATE_PAYMENT,
       AccessPermission.DETAIL_PAYMENT,
+      AccessPermission.DASHBOARD_PAYMENT,
+      AccessPermission.DASHBOARD_FINANCE,
     ],
   },
   {
@@ -100,6 +102,8 @@ export const RBACPermissions: RBACPermission[] = [
       AccessPermission.MENU_PAYMENT,
       AccessPermission.CREATE_PAYMENT,
       AccessPermission.DETAIL_PAYMENT,
+      AccessPermission.DASHBOARD_PAYMENT,
+      AccessPermission.DASHBOARD_FINANCE,
       AccessPermission.MENU_INVENTORY,
       AccessPermission.DETAIL_INVENTORY,
     ],

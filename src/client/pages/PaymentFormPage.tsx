@@ -82,8 +82,8 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
     if (amountError) newErrors.amount = amountError;
     else {
       const numAmount = parseFloat(amount);
-      if (isNaN(numAmount) || numAmount <= 0) {
-        newErrors.amount = "Amount must be greater than 0";
+      if (isNaN(numAmount)) {
+        newErrors.amount = "Amount must have";
       }
     }
 
@@ -164,7 +164,6 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
               id="amount"
               type="number"
               step="0.01"
-              min="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"

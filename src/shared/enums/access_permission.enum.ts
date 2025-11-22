@@ -49,4 +49,8 @@ export enum AccessPermission {
   MENU_PAYMENT = "menu_payment",
   CREATE_PAYMENT = "create_payment",
   DETAIL_PAYMENT = "detail_payment",
+  DASHBOARD_PAYMENT = "dashboard_payment",
+
+  // Finance permissions
+  DASHBOARD_FINANCE = "dashboard_finance",
 }

@@ -8,3 +8,5 @@ export * from "./tax.service";
 export * from "./inventory_history.service";
 export * from "./transaction.service";
 export * from "./payment.service";
+export * from "./payment-dashboard.service";
+export * from "./finance-dashboard.service";

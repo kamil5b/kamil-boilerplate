@@ -1,16 +1,18 @@
 'use client';
 
+import { use } from "react";
 import { ProtectedLayout } from "@/client/layouts";
 import { CustomerFormPage } from "@/client/pages";
 import { useRouter } from "next/navigation";
 
-export default function EditCustomerRoute({ params }: { params: { id: string } }) {
+export default function EditCustomerRoute({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   
   return (
     <ProtectedLayout>
       <CustomerFormPage
-        customerId={params.id}
+        customerId={id}
         onSuccess={() => router.push("/customers")}
         onCancel={() => router.push("/customers")}
       />

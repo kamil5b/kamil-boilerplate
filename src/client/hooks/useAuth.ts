@@ -55,10 +55,10 @@ export function useAuth() {
     }
   };
 
-  const login = (newToken: string) => {
+  const login = async (newToken: string) => {
     localStorage.setItem("auth_token", newToken);
     setToken(newToken);
-    fetchUser(newToken);
+    await fetchUser(newToken);
     router.push("/dashboard");
   };
 

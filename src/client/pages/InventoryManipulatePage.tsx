@@ -116,7 +116,7 @@ export function InventoryManipulatePage({ onSuccess, onCancel }: InventoryManipu
         remark: remark || undefined,
       };
 
-      await apiRequest("/api/inventory-histories/manipulate", {
+      await apiRequest("/api/inventory-histories", {
         method: "POST",
         body: JSON.stringify(data),
       });

@@ -8,3 +8,5 @@ export * from "./inventory_history.response";
 export * from "./tax.response";
 export * from "./transaction.response";
 export * from "./payment.response";
+export * from "./payment-dashboard.response";
+export * from "./finance-dashboard.response";

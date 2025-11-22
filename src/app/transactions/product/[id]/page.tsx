@@ -3,28 +3,29 @@
 import { ProtectedLayout } from '@/client/layouts';
 import { ProductTransactionDetailPage } from '@/client/pages';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { use, useState, useEffect } from 'react';
 import { fetchById } from '@/client/helpers';
 import type { ProductResponse } from '@/shared';
 
 export default function ProductTransactionDetailPage_Route({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
   const router = useRouter();
+  const { id } = use(params);
   const [productName, setProductName] = useState('');
 
   useEffect(() => {
-    fetchById<ProductResponse>('/api/products', params.id)
+    fetchById<ProductResponse>('/api/products', id)
       .then((product) => setProductName(product.name))
       .catch(() => setProductName('Unknown Product'));
-  }, [params.id]);
+  }, [id]);
 
   return (
     <ProtectedLayout>
       <ProductTransactionDetailPage
-        productId={params.id}
+        productId={id}
         productName={productName}
         onBack={() => router.push('/transactions/dashboard')}
       />

@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
     }
 
     try {
-      const secret = process.env.JWT_SECRET || "your-secret-key";
+      const secret = process.env.JWT_SECRET || "your-secret-key-change-in-production";
       const decoded = jwt.verify(token, secret) as JWTPayload;
       
       // Create response with user info in headers

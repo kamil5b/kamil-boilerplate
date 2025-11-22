@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMeService } from "../services";
-import { AppError } from "../utils/error";
+import { AppError, getUserIdFromRequest } from "../utils";
 
 export class MeHandler {
   private meService = createMeService();
 
   async getMe(request: NextRequest): Promise<NextResponse> {
     try {
-      // Get user ID from middleware headers
-      const userId = request.headers.get("x-user-id");
-
-      if (!userId) {
-        throw new AppError("Unauthorized - No user ID in request", 401);
-      }
+      // Get user ID from the Authorization header
+      const userId = getUserIdFromRequest(request);
 
       const result = await this.meService.getMe(userId);
 

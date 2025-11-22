@@ -13,6 +13,7 @@ import {
   Warehouse,
   Receipt,
   CreditCard,
+  DollarSign,
   ChevronRight,
 } from "lucide-react";
 import sidebarConfig from "@/client/layouts/sidebar.json";
@@ -28,6 +29,7 @@ const iconMap = {
   warehouse: Warehouse,
   receipt: Receipt,
   creditCard: CreditCard,
+  dollarSign: DollarSign,
 };
 
 interface SubmenuItem {
@@ -78,14 +80,14 @@ export function DashboardPage() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredNavigation.map((item) => {
-          const Icon = iconMap[item.icon as keyof typeof iconMap];
+          const Icon = iconMap[item.icon as keyof typeof iconMap] || LayoutDashboard;
           return (
             <Card
               key={item.href}
-              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              className="hover:shadow-lg transition-shadow group"
             >
               <Link href={item.href}>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 cursor-pointer">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold flex items-center gap-2">
                       <Icon className="h-5 w-5 text-primary" />
@@ -94,25 +96,24 @@ export function DashboardPage() {
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                 </CardHeader>
-                {item.submenu && item.submenu.length > 0 && (
-                  <CardContent>
-                    <div className="space-y-1">
-                      {item.submenu
-                        .filter((subitem) => !subitem.permission || can(subitem.permission))
-                        .map((subitem) => (
-                          <Link
-                            key={subitem.href}
-                            href={subitem.href}
-                            className="block text-sm text-muted-foreground hover:text-primary transition-colors py-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            • {subitem.title}
-                          </Link>
-                        ))}
-                    </div>
-                  </CardContent>
-                )}
               </Link>
+              {item.submenu && item.submenu.length > 0 && (
+                <CardContent>
+                  <div className="space-y-1">
+                    {item.submenu
+                      .filter((subitem) => !subitem.permission || can(subitem.permission))
+                      .map((subitem) => (
+                        <Link
+                          key={subitem.href}
+                          href={subitem.href}
+                          className="block text-sm text-muted-foreground hover:text-primary transition-colors py-1"
+                        >
+                          • {subitem.title}
+                        </Link>
+                      ))}
+                  </div>
+                </CardContent>
+              )}
             </Card>
           );
         })}

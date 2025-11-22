@@ -6,6 +6,12 @@
       "icon": "dashboard"
     },
     {
+      "title": "Finance Dashboard",
+      "href": "/finance/dashboard",
+      "icon": "dollarSign",
+      "permission": "dashboard_finance"
+    },
+    {
       "title": "Users",
       "href": "/users",
       "icon": "users",
@@ -80,7 +86,22 @@
       "title": "Payments",
       "href": "/payments",
       "icon": "creditCard",
-      "permission": "menu_payment"
+      "permission": "menu_payment",
+      "submenu": [
+        {
+          "title": "List",
+          "href": "/payments"
+        },
+        {
+          "title": "Dashboard",
+          "href": "/payments/dashboard",
+          "permission": "dashboard_payment"
+        },
+        {
+          "title": "Create New",
+          "href": "/payments/new"
+        }
+      ]
     }
   ]
 }

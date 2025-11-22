@@ -8,3 +8,5 @@ export * from "./tax.handler";
 export * from "./inventory_history.handler";
 export * from "./transaction.handler";
 export * from "./payment.handler";
+export * from "./payment-dashboard.handler";
+export * from "./finance-dashboard.handler";

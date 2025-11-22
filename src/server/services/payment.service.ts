@@ -134,11 +134,6 @@ export function createPaymentService(): PaymentService {
           throw new AppError("Invalid payment type", 400);
         }
 
-        // Validate amount
-        if (data.amount <= 0) {
-          throw new AppError("Payment amount must be positive", 400);
-        }
-
         // If transaction ID is provided, validate and update transaction status
         let transaction = null;
         if (data.transactionId) {
@@ -153,10 +148,22 @@ export function createPaymentService(): PaymentService {
 
           // Update transaction status
           let newStatus = transaction.status;
-          if (newTotalPaid >= Number.parseFloat(transaction.grand_total)) {
-            newStatus = TransactionStatus.PAID;
-          } else if (newTotalPaid > 0) {
-            newStatus = TransactionStatus.PARTIALLY_PAID;
+          const grandTotal = Number.parseFloat(transaction.grand_total);
+          
+          // For BUY transactions, negative payments indicate money owed to supplier
+          if (transaction.type === 'BUY') {
+            if (newTotalPaid <= grandTotal) {
+              newStatus = TransactionStatus.PAID;
+            } else if (newTotalPaid < 0) {
+              newStatus = TransactionStatus.PARTIALLY_PAID;
+            }
+          } else {
+            // For SELL transactions, use normal logic
+            if (newTotalPaid >= grandTotal) {
+              newStatus = TransactionStatus.PAID;
+            } else if (newTotalPaid > 0) {
+              newStatus = TransactionStatus.PARTIALLY_PAID;
+            }
           }
 
           if (newStatus !== transaction.status) {

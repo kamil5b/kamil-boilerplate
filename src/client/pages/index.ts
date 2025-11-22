@@ -22,4 +22,6 @@ export * from "./ProductTransactionDetailPage";
 export * from "./PaymentsListPage";
 export * from "./PaymentFormPage";
 export * from "./PaymentDetailPage";
+export * from "./PaymentDashboardPage";
+export * from "./FinanceDashboardPage";
 export * from "./DashboardPage";

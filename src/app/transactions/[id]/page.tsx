@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { ProtectedLayout } from '@/client/layouts';
 import { TransactionDetailPage } from '@/client/pages';
 import { useRouter } from 'next/navigation';
@@ -7,14 +8,15 @@ import { useRouter } from 'next/navigation';
 export default function TransactionDetailPage_Route({ 
   params 
 }: { 
-  params: { id: string } 
+  params: Promise<{ id: string }> 
 }) {
   const router = useRouter();
+  const { id } = use(params);
 
   return (
     <ProtectedLayout>
       <TransactionDetailPage
-        transactionId={params.id}
+        transactionId={id}
         onBack={() => router.push('/transactions')}
         onCreatePayment={(transactionId: string) => 
           router.push(`/payments/new?transactionId=${transactionId}`)

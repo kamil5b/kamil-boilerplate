@@ -193,6 +193,25 @@ Create CRUD Dashboard:
             - Line Red: Recievable
             - Line Blue: Net
 
+- Finance Dashboard
+    - Gross Sales (from transaction)
+        - Total Revenue
+        - Total Expenses
+        - Net Income
+    - Cashflow Report (from payment)
+        - Inflow
+        - Outflow
+        - Net Cash Flow
+    - Outstanding Balance (from transaction-payment)
+        - Accounts Receivable (Revenue - Inflow)
+        - Accounts Payable (Expenses - Outflow)
+        - Net Working Capital (A/R - A/P)
+    - Deferred Items
+        - Unearned Revenue (Inflow - Revenue)
+        - Prepaid Expenses (Outflow - Expenses)
+        - Net Deferred Position (U/R - P/E)
+
+
 
 - RBAC:
     - Super Admin, can do anything

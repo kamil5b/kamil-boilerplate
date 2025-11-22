@@ -16,6 +16,8 @@ import {
   Warehouse,
   Receipt,
   CreditCard,
+  DollarSign,
+  FileText,
   LogOut,
   Menu,
   X,
@@ -35,6 +37,8 @@ const iconMap = {
   warehouse: Warehouse,
   receipt: Receipt,
   creditCard: CreditCard,
+  dollarSign: DollarSign,
+  fileText: FileText,
 };
 
 interface SubmenuItem {
