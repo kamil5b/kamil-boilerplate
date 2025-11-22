@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { InventoryHistoryResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated } from "@/client/helpers";
 import {
   PageHeader,
@@ -19,13 +21,22 @@ import {
   TableRow,
 } from "@/client/components/ui/table";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface InventoryHistoriesListPageProps {
-  onViewSummary: () => void;
   onManipulate: () => void;
 }
 
-export function InventoryHistoriesListPage({ onViewSummary, onManipulate }: InventoryHistoriesListPageProps) {
+export function InventoryHistoriesListPage({ onManipulate }: InventoryHistoriesListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_INVENTORY)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: histories,
     page,
@@ -40,6 +51,7 @@ export function InventoryHistoriesListPage({ onViewSummary, onManipulate }: Inve
     fetchFn: (page, limit, search) => fetchPaginated<InventoryHistoryResponse>("/api/inventory-histories", page, limit, search),
   });
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading inventory histories..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -47,18 +59,9 @@ export function InventoryHistoriesListPage({ onViewSummary, onManipulate }: Inve
     <div className="space-y-6">
       <PageHeader
         title="Inventory History"
-        onCreateClick={onManipulate}
+        onCreateClick={can(AccessPermission.MANIPULATE_INVENTORY) ? onManipulate : undefined}
         createButtonText="Manipulate Inventory"
       />
-
-      <div className="flex gap-2">
-        <button
-          onClick={onViewSummary}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          View Summary
-        </button>
-      </div>
 
       <SearchBar
         value={search}

@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { TransactionResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated } from "@/client/helpers";
 import {
   PageHeader,
@@ -20,14 +22,23 @@ import {
 } from "@/client/components/ui/table";
 import { Badge } from "@/client/components/ui/badge";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface TransactionsListPageProps {
   onCreate: () => void;
   onView: (id: string) => void;
-  onViewDashboard: () => void;
 }
 
-export function TransactionsListPage({ onCreate, onView, onViewDashboard }: TransactionsListPageProps) {
+export function TransactionsListPage({ onCreate, onView }: TransactionsListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_TRANSACTION)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: transactions,
     page,
@@ -55,6 +66,7 @@ export function TransactionsListPage({ onCreate, onView, onViewDashboard }: Tran
     }
   };
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading transactions..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -62,18 +74,9 @@ export function TransactionsListPage({ onCreate, onView, onViewDashboard }: Tran
     <div className="space-y-6">
       <PageHeader
         title="Transactions"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_TRANSACTION) ? onCreate : undefined}
         createButtonText="Create Transaction"
       />
-
-      <div className="flex gap-2">
-        <button
-          onClick={onViewDashboard}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          View Dashboard
-        </button>
-      </div>
 
       <SearchBar
         value={search}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { 
   CreateTransactionRequest, 
   TransactionResponse,
@@ -9,7 +10,8 @@ import type {
   UnitQuantityResponse,
   TaxResponse,
 } from "@/shared";
-import { TransactionType, DiscountType } from "@/shared";
+import { TransactionType, DiscountType, AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { apiRequest, createResource, fetchPaginated } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -57,6 +59,8 @@ interface TransactionFormPageProps {
 }
 
 export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [type, setType] = useState<TransactionType>(TransactionType.SELL);
   const [customerId, setCustomerId] = useState<string>("");
   const [items, setItems] = useState<TransactionItem[]>([]);
@@ -68,6 +72,13 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.CREATE_TRANSACTION)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   // Load taxes on mount
   useEffect(() => {

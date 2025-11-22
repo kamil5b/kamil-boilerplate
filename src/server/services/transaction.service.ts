@@ -30,6 +30,7 @@ export interface TransactionService {
   createTransaction(data: CreateTransactionRequest, createdBy: string): Promise<TransactionResponse>;
   getTransactionSummary(params: GetTransactionSummaryRequest): Promise<TransactionSummaryResponse>;
   getProductTransactionSummary(params: GetProductTransactionSummaryRequest): Promise<ProductTransactionSummaryResponse[]>;
+  getTransactionTimeSeries(params: { startDate?: string; endDate?: string; interval?: string }): Promise<any[]>;
 }
 
 function mapTransactionItemToResponse(item: any): TransactionItemResponse {
@@ -421,6 +422,30 @@ export function createTransactionService(): TransactionService {
           quantitySold: Number.parseFloat(row.quantity_sold),
           quantityBought: Number.parseFloat(row.quantity_bought),
         }));
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+
+    async getTransactionTimeSeries(params) {
+      const client = await getDbClient();
+
+      try {
+        await client.query("BEGIN");
+
+        const timeSeriesData = await transactionRepo.getTimeSeries(
+          client,
+          params.startDate,
+          params.endDate,
+          params.interval
+        );
+
+        await client.query("COMMIT");
+
+        return timeSeriesData;
       } catch (error) {
         await client.query("ROLLBACK");
         throw error;

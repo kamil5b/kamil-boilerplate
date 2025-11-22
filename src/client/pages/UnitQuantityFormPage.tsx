@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateUnitQuantityRequest, UpdateUnitQuantityRequest, UnitQuantityResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { createResource, updateResource, fetchById } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -25,6 +28,8 @@ interface UnitQuantityFormPageProps {
 }
 
 export function UnitQuantityFormPage({ unitQuantityId, onSuccess, onCancel }: UnitQuantityFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const isEdit = !!unitQuantityId;
 
   const [name, setName] = useState("");
@@ -33,6 +38,14 @@ export function UnitQuantityFormPage({ unitQuantityId, onSuccess, onCancel }: Un
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    const requiredPermission = isEdit ? AccessPermission.EDIT_UNIT_QUANTITY : AccessPermission.CREATE_UNIT_QUANTITY;
+    if (!can(requiredPermission)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, isEdit, router]);
 
   useEffect(() => {
     if (isEdit && unitQuantityId) {

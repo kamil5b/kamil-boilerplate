@@ -43,6 +43,7 @@ export enum AccessPermission {
   MENU_TRANSACTION = "menu_transaction",
   CREATE_TRANSACTION = "create_transaction",
   DETAIL_TRANSACTION = "detail_transaction",
+  DASHBOARD_TRANSACTION = "dashboard_transaction",
 
   // Payment permissions
   MENU_PAYMENT = "menu_payment",

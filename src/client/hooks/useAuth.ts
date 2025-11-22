@@ -2,27 +2,70 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { UserRole } from "@/shared/enums";
+
+export interface User {
+  userId: string;
+  email: string;
+  role: UserRole;
+  name: string;
+}
 
 export function useAuth() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token");
     setToken(storedToken);
-    setIsLoading(false);
+    
+    if (storedToken) {
+      fetchUser(storedToken);
+    } else {
+      setIsLoading(false);
+    }
   }, []);
+
+  const fetchUser = async (authToken: string) => {
+    try {
+      const response = await fetch("/api/me", {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        // Token is invalid, clear it
+        localStorage.removeItem("auth_token");
+        setToken(null);
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      localStorage.removeItem("auth_token");
+      setToken(null);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = (newToken: string) => {
     localStorage.setItem("auth_token", newToken);
     setToken(newToken);
+    fetchUser(newToken);
     router.push("/dashboard");
   };
 
   const logout = () => {
     localStorage.removeItem("auth_token");
     setToken(null);
+    setUser(null);
     router.push("/login");
   };
 
@@ -32,7 +75,8 @@ export function useAuth() {
 
   return {
     token,
-    isAuthenticated: !!token,
+    user,
+    isAuthenticated: !!token && !!user,
     isLoading,
     login,
     logout,

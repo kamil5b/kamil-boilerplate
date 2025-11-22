@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { PaymentResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated } from "@/client/helpers";
 import {
   PageHeader,
@@ -20,6 +22,7 @@ import {
 } from "@/client/components/ui/table";
 import { Badge } from "@/client/components/ui/badge";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface PaymentsListPageProps {
   onCreate: () => void;
@@ -27,6 +30,15 @@ interface PaymentsListPageProps {
 }
 
 export function PaymentsListPage({ onCreate, onView }: PaymentsListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_PAYMENT)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: payments,
     page,
@@ -52,6 +64,7 @@ export function PaymentsListPage({ onCreate, onView }: PaymentsListPageProps) {
     }
   };
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading payments..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -59,7 +72,7 @@ export function PaymentsListPage({ onCreate, onView }: PaymentsListPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Payments"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_PAYMENT) ? onCreate : undefined}
         createButtonText="Create Payment"
       />
 

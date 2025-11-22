@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateCustomerRequest, UpdateCustomerRequest, CustomerResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { createResource, updateResource, fetchById } from "@/client/helpers";
 import { validateRequired, isValidEmail, isValidPhone } from "@/client/helpers/validation";
 import {
@@ -24,6 +27,8 @@ interface CustomerFormPageProps {
 }
 
 export function CustomerFormPage({ customerId, onSuccess, onCancel }: CustomerFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const isEdit = !!customerId;
 
   const [name, setName] = useState("");
@@ -36,6 +41,14 @@ export function CustomerFormPage({ customerId, onSuccess, onCancel }: CustomerFo
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    const requiredPermission = isEdit ? AccessPermission.EDIT_CUSTOMER : AccessPermission.CREATE_CUSTOMER;
+    if (!can(requiredPermission)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, isEdit, router]);
 
   useEffect(() => {
     if (isEdit && customerId) {

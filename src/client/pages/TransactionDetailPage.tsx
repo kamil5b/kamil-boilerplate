@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { TransactionResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { fetchById } from "@/client/helpers";
 import {
   Card,
@@ -29,9 +32,18 @@ interface TransactionDetailPageProps {
 }
 
 export function TransactionDetailPage({ transactionId, onBack, onCreatePayment }: TransactionDetailPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [transaction, setTransaction] = useState<TransactionResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.DETAIL_TRANSACTION)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   useEffect(() => {
     fetchById<TransactionResponse>("/api/transactions", transactionId)
@@ -62,7 +74,7 @@ export function TransactionDetailPage({ transactionId, onBack, onCreatePayment }
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Transaction Details</h1>
         <div className="flex gap-2">
-          {transaction.status !== "PAID" && (
+          {transaction.status !== "PAID" && can(AccessPermission.CREATE_PAYMENT) && (
             <button
               onClick={() => onCreatePayment(transactionId)}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

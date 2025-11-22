@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { apiRequest } from "@/client/helpers";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import {
   Card,
   CardContent,
@@ -40,9 +43,18 @@ export function ProductTransactionDetailPage({
   productName,
   onBack,
 }: ProductTransactionDetailPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [data, setData] = useState<ProductTransactionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.DETAIL_TRANSACTION)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   useEffect(() => {
     loadData();

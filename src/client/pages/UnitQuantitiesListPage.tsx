@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { UnitQuantityResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated, deleteResource } from "@/client/helpers";
 import {
   PageHeader,
@@ -10,6 +12,7 @@ import {
   ErrorAlert,
   LoadingSpinner,
   TableActions,
+  Protected,
 } from "@/client/components";
 import {
   Table,
@@ -20,6 +23,7 @@ import {
   TableRow,
 } from "@/client/components/ui/table";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface UnitQuantitiesListPageProps {
   onEdit: (id: string) => void;
@@ -27,6 +31,15 @@ interface UnitQuantitiesListPageProps {
 }
 
 export function UnitQuantitiesListPage({ onEdit, onCreate }: UnitQuantitiesListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_UNIT_QUANTITY)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: unitQuantities,
     page,
@@ -53,6 +66,7 @@ export function UnitQuantitiesListPage({ onEdit, onCreate }: UnitQuantitiesListP
     }
   };
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading unit quantities..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -60,7 +74,7 @@ export function UnitQuantitiesListPage({ onEdit, onCreate }: UnitQuantitiesListP
     <div className="space-y-6">
       <PageHeader
         title="Unit Quantities"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_UNIT_QUANTITY) ? onCreate : undefined}
         createButtonText="Create Unit Quantity"
       />
 
@@ -78,7 +92,9 @@ export function UnitQuantitiesListPage({ onEdit, onCreate }: UnitQuantitiesListP
               <TableHead>Remark</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Updated At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <Protected permissions={[AccessPermission.EDIT_UNIT_QUANTITY, AccessPermission.DELETE_UNIT_QUANTITY]}>
+                <TableHead className="text-right">Actions</TableHead>
+              </Protected>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,12 +111,14 @@ export function UnitQuantitiesListPage({ onEdit, onCreate }: UnitQuantitiesListP
                   <TableCell>{uq.remark || "-"}</TableCell>
                   <TableCell>{formatDateTime(uq.createdAt)}</TableCell>
                   <TableCell>{formatDateTime(uq.updatedAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <TableActions
-                      onEdit={() => onEdit(uq.id)}
-                      onDelete={() => handleDelete(uq.id, uq.name)}
-                    />
-                  </TableCell>
+                  <Protected permissions={[AccessPermission.EDIT_UNIT_QUANTITY, AccessPermission.DELETE_UNIT_QUANTITY]}>
+                    <TableCell className="text-right">
+                      <TableActions
+                        onEdit={can(AccessPermission.EDIT_UNIT_QUANTITY) ? () => onEdit(uq.id) : undefined}
+                        onDelete={can(AccessPermission.DELETE_UNIT_QUANTITY) ? () => handleDelete(uq.id, uq.name) : undefined}
+                      />
+                    </TableCell>
+                  </Protected>
                 </TableRow>
               ))
             )}

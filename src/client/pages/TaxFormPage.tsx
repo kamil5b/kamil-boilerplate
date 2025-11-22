@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateTaxRequest, UpdateTaxRequest, TaxResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { createResource, updateResource, fetchById } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -24,6 +27,8 @@ interface TaxFormPageProps {
 }
 
 export function TaxFormPage({ taxId, onSuccess, onCancel }: TaxFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const isEdit = !!taxId;
 
   const [name, setName] = useState("");
@@ -33,6 +38,14 @@ export function TaxFormPage({ taxId, onSuccess, onCancel }: TaxFormPageProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    const requiredPermission = isEdit ? AccessPermission.EDIT_TAX : AccessPermission.CREATE_TAX;
+    if (!can(requiredPermission)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, isEdit, router]);
 
   useEffect(() => {
     if (isEdit && taxId) {

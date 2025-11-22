@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { InventorySummaryResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
 import { apiRequest } from "@/client/helpers";
+import { usePermissions } from "@/client/hooks";
 import {
   Card,
   CardContent,
@@ -26,9 +29,18 @@ interface InventorySummaryPageProps {
 }
 
 export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummaryPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [summary, setSummary] = useState<InventorySummaryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.DETAIL_INVENTORY)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   useEffect(() => {
     apiRequest<{ data: InventorySummaryResponse[] }>("/api/inventory-histories/summary")

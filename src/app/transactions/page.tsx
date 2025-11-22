@@ -12,7 +12,6 @@ export default function TransactionsRoute() {
       <TransactionsListPage
         onCreate={() => router.push("/transactions/new")}
         onView={(id) => router.push(`/transactions/${id}`)}
-        onViewDashboard={() => router.push("/transactions/dashboard")}
       />
     </ProtectedLayout>
   );

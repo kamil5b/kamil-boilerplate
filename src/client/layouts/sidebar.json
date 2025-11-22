@@ -8,32 +8,38 @@
     {
       "title": "Users",
       "href": "/users",
-      "icon": "users"
+      "icon": "users",
+      "permission": "menu_user"
     },
     {
       "title": "Customers",
       "href": "/customers",
-      "icon": "store"
+      "icon": "store",
+      "permission": "menu_customer"
     },
     {
       "title": "Products",
       "href": "/products",
-      "icon": "package"
+      "icon": "package",
+      "permission": "menu_product"
     },
     {
       "title": "Unit Quantities",
       "href": "/unit-quantities",
-      "icon": "ruler"
+      "icon": "ruler",
+      "permission": "menu_unit_quantity"
     },
     {
       "title": "Taxes",
       "href": "/taxes",
-      "icon": "calculator"
+      "icon": "calculator",
+      "permission": "menu_tax"
     },
     {
       "title": "Inventory",
       "href": "/inventory-histories",
       "icon": "warehouse",
+      "permission": "menu_inventory",
       "submenu": [
         {
           "title": "History",
@@ -53,6 +59,7 @@
       "title": "Transactions",
       "href": "/transactions",
       "icon": "receipt",
+      "permission": "menu_transaction",
       "submenu": [
         {
           "title": "List",
@@ -60,7 +67,8 @@
         },
         {
           "title": "Dashboard",
-          "href": "/transactions/dashboard"
+          "href": "/transactions/dashboard",
+          "permission": "dashboard_transaction"
         },
         {
           "title": "Create New",
@@ -71,7 +79,8 @@
     {
       "title": "Payments",
       "href": "/payments",
-      "icon": "creditCard"
+      "icon": "creditCard",
+      "permission": "menu_payment"
     }
   ]
 }

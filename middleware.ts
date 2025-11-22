@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
+
 export function middleware(request: NextRequest) {
   // Skip middleware for public routes
   if (
@@ -27,8 +33,19 @@ export function middleware(request: NextRequest) {
 
     try {
       const secret = process.env.JWT_SECRET || "your-secret-key";
-      jwt.verify(token, secret);
-      return NextResponse.next();
+      const decoded = jwt.verify(token, secret) as JWTPayload;
+      
+      // Create response with user info in headers
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-user-id", decoded.userId);
+      requestHeaders.set("x-user-email", decoded.email);
+      requestHeaders.set("x-user-role", decoded.role);
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
     } catch (error) {
       return NextResponse.json(
         {

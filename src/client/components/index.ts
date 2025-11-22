@@ -4,6 +4,7 @@ export * from "./LoadingSpinner";
 export * from "./PageHeader";
 export * from "./PaginatedSelect";
 export * from "./Pagination";
+export * from "./Protected";
 export * from "./SearchBar";
 export * from "./TableActions";
 export * from "./ui";

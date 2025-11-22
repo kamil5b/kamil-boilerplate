@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { apiRequest } from "@/client/helpers";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import {
   Card,
   CardContent,
@@ -56,11 +59,20 @@ interface TransactionDashboardPageProps {
 }
 
 export function TransactionDashboardPage({ onViewProduct }: TransactionDashboardPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [summary, setSummary] = useState<TransactionSummary | null>(null);
   const [timeSeries, setTimeSeries] = useState<TimeSeriesData[]>([]);
   const [productSummary, setProductSummary] = useState<ProductSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.DASHBOARD_TRANSACTION)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   useEffect(() => {
     loadData();

@@ -1,4 +1,5 @@
 export * from "./auth.handler";
+export * from "./me.handler";
 export * from "./user.handler";
 export * from "./customer.handler";
 export * from "./unit_quantity.handler";

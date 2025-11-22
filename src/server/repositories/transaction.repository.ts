@@ -61,6 +61,7 @@ export interface TransactionRepository {
   updateStatus(client: PoolClient, id: string, status: string): Promise<Transaction | null>;
   getSummary(client: PoolClient, startDate?: string, endDate?: string): Promise<any>;
   getProductSummary(client: PoolClient, productId?: string, startDate?: string, endDate?: string): Promise<any[]>;
+  getTimeSeries(client: PoolClient, startDate?: string, endDate?: string, interval?: string): Promise<any[]>;
 }
 
 export function createTransactionRepository(): TransactionRepository {
@@ -270,6 +271,58 @@ export function createTransactionRepository(): TransactionRepository {
       );
 
       return result.rows;
+    },
+
+    async getTimeSeries(client, startDate, endDate, interval = "day") {
+      let whereClause = "WHERE 1=1";
+      const queryParams: any[] = [];
+      let paramCounter = 1;
+
+      if (startDate) {
+        whereClause += ` AND created_at >= $${paramCounter}`;
+        queryParams.push(startDate);
+        paramCounter++;
+      }
+
+      if (endDate) {
+        whereClause += ` AND created_at <= $${paramCounter}`;
+        queryParams.push(endDate);
+        paramCounter++;
+      }
+
+      // Determine the date truncation based on interval
+      let dateTrunc = "day";
+      if (interval === "week") {
+        dateTrunc = "week";
+      } else if (interval === "month") {
+        dateTrunc = "month";
+      } else if (interval === "year") {
+        dateTrunc = "year";
+      }
+
+      const result = await client.query(
+        `SELECT 
+          DATE_TRUNC('${dateTrunc}', created_at) as period,
+          COALESCE(SUM(CASE WHEN type = 'SELL' THEN grand_total ELSE 0 END), 0) as revenue,
+          COALESCE(SUM(CASE WHEN type = 'BUY' THEN grand_total ELSE 0 END), 0) as expenses,
+          COALESCE(SUM(CASE WHEN type = 'SELL' THEN grand_total WHEN type = 'BUY' THEN -grand_total ELSE 0 END), 0) as net_income,
+          COUNT(CASE WHEN type = 'SELL' THEN 1 END) as sell_count,
+          COUNT(CASE WHEN type = 'BUY' THEN 1 END) as buy_count
+         FROM transactions
+         ${whereClause}
+         GROUP BY period
+         ORDER BY period ASC`,
+        queryParams
+      );
+
+      return result.rows.map((row) => ({
+        period: row.period,
+        revenue: Number.parseFloat(row.revenue),
+        expenses: Number.parseFloat(row.expenses),
+        netIncome: Number.parseFloat(row.net_income),
+        sellCount: Number.parseInt(row.sell_count),
+        buyCount: Number.parseInt(row.buy_count),
+      }));
     },
   };
 }

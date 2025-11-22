@@ -116,6 +116,31 @@ export class TransactionHandler {
     }
   }
 
+  async getTransactionTimeSeries(request: NextRequest): Promise<NextResponse> {
+    try {
+      const { searchParams } = new URL(request.url);
+      const startDate = searchParams.get("startDate") || undefined;
+      const endDate = searchParams.get("endDate") || undefined;
+      const interval = searchParams.get("interval") || "day";
+
+      const result = await this.transactionService.getTransactionTimeSeries({
+        startDate,
+        endDate,
+        interval,
+      });
+
+      return NextResponse.json(
+        {
+          ...createBaseResponse("Transaction time series retrieved successfully"),
+          data: result,
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
   private handleError(error: unknown): NextResponse {
     if (error instanceof AppError) {
       return NextResponse.json(

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateUserRequest, UpdateUserRequest } from "@/shared/request";
 import type { UserResponse } from "@/shared/response";
-import { UserRole } from "@/shared/enums";
+import { UserRole, AccessPermission } from "@/shared/enums";
+import { usePermissions } from "@/client/hooks";
 import { createResource, updateResource, fetchById, validateEmail, validatePassword, validateRequired } from "@/client/helpers";
 import {
   Button,
@@ -29,6 +31,8 @@ interface UserFormPageProps {
 }
 
 export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const isEdit = !!userId;
   const [formData, setFormData] = useState<CreateUserRequest>({
     name: "",
@@ -40,6 +44,14 @@ export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps)
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (authLoading) return;
+    const requiredPermission = isEdit ? AccessPermission.EDIT_USER : AccessPermission.CREATE_USER;
+    if (!can(requiredPermission)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, isEdit, router]);
 
   useEffect(() => {
     if (userId) loadUser();

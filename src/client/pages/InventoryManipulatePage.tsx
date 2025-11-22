@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { ManipulateInventoryRequest, ProductResponse, UnitQuantityResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { apiRequest, fetchPaginated } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -33,11 +36,20 @@ interface InventoryManipulatePageProps {
 }
 
 export function InventoryManipulatePage({ onSuccess, onCancel }: InventoryManipulatePageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [remark, setRemark] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MANIPULATE_INVENTORY)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   const addItem = () => {
     setItems([

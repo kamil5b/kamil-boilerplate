@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateProductRequest, UpdateProductRequest, ProductResponse } from "@/shared";
-import { ProductType } from "@/shared";
+import { ProductType, AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { createResource, updateResource, fetchById } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -32,6 +34,8 @@ interface ProductFormPageProps {
 }
 
 export function ProductFormPage({ productId, onSuccess, onCancel }: ProductFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const isEdit = !!productId;
 
   const [name, setName] = useState("");
@@ -42,6 +46,14 @@ export function ProductFormPage({ productId, onSuccess, onCancel }: ProductFormP
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    const requiredPermission = isEdit ? AccessPermission.EDIT_PRODUCT : AccessPermission.CREATE_PRODUCT;
+    if (!can(requiredPermission)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, isEdit, router]);
 
   useEffect(() => {
     if (isEdit && productId) {

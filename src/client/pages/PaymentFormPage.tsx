@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { CreatePaymentRequest, PaymentResponse, TransactionResponse } from "@/shared";
-import { PaymentType } from "@/shared";
+import { PaymentType, AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { createResource } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
 import {
@@ -37,6 +39,8 @@ interface PaymentFormPageProps {
 }
 
 export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess, onCancel }: PaymentFormPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [transactionId, setTransactionId] = useState(initialTransactionId || "");
   const [type, setType] = useState<PaymentType>(PaymentType.CASH);
   const [amount, setAmount] = useState("");
@@ -46,6 +50,13 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.CREATE_PAYMENT)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   const addDetail = () => {
     setDetails([...details, { identifier: "", value: "" }]);

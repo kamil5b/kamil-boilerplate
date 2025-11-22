@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { PaymentResponse } from "@/shared";
+import { AccessPermission } from "@/shared";
+import { usePermissions } from "@/client/hooks";
 import { fetchById } from "@/client/helpers";
 import {
   Card,
@@ -20,9 +23,18 @@ interface PaymentDetailPageProps {
 }
 
 export function PaymentDetailPage({ paymentId, onBack }: PaymentDetailPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
   const [payment, setPayment] = useState<PaymentResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.DETAIL_PAYMENT)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
 
   useEffect(() => {
     fetchById<PaymentResponse>("/api/payments", paymentId)

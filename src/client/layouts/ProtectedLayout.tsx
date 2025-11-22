@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { useAuth } from "@/client/hooks";
+import { useAuth, usePermissions } from "@/client/hooks";
 import { Button } from "@/client/components/ui/button";
 import { Separator } from "@/client/components/ui/separator";
 import {
@@ -40,12 +40,14 @@ const iconMap = {
 interface SubmenuItem {
   title: string;
   href: string;
+  permission?: string;
 }
 
 interface NavigationItem {
   title: string;
   href: string;
   icon: string;
+  permission?: string;
   submenu?: SubmenuItem[];
 }
 
@@ -54,11 +56,20 @@ interface ProtectedLayoutProps {
 }
 
 export function ProtectedLayout({ children }: ProtectedLayoutProps) {
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading, logout, user } = useAuth();
+  const { can } = usePermissions();
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+
+  // Filter navigation items based on permissions
+  const filteredNavigation = (sidebarConfig.navigation as NavigationItem[]).filter((item) => {
+    // Items without permission requirement are always visible (e.g., Dashboard)
+    if (!item.permission) return true;
+    // Check if user has the required permission
+    return can(item.permission);
+  });
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -105,7 +116,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            {(sidebarConfig.navigation as NavigationItem[]).map((item) => {
+            {filteredNavigation.map((item) => {
               const Icon = iconMap[item.icon as keyof typeof iconMap];
               const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
               const hasSubmenu = item.submenu && item.submenu.length > 0;
@@ -143,21 +154,23 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
                   {/* Submenu */}
                   {hasSubmenu && isExpanded && (
                     <div className="ml-6 mt-1 space-y-1">
-                      {item.submenu!.map((subItem) => {
-                        const isSubActive = pathname === subItem.href;
-                        return (
-                          <Link key={subItem.href} href={subItem.href}>
-                            <Button
-                              variant={isSubActive ? "secondary" : "ghost"}
-                              size="sm"
-                              className="w-full justify-start"
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              {subItem.title}
-                            </Button>
-                          </Link>
-                        );
-                      })}
+                      {item.submenu!
+                        .filter((subItem) => !subItem.permission || can(subItem.permission))
+                        .map((subItem) => {
+                          const isSubActive = pathname === subItem.href;
+                          return (
+                            <Link key={subItem.href} href={subItem.href}>
+                              <Button
+                                variant={isSubActive ? "secondary" : "ghost"}
+                                size="sm"
+                                className="w-full justify-start"
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                {subItem.title}
+                              </Button>
+                            </Link>
+                          );
+                        })}
                     </div>
                   )}
                 </div>
@@ -168,7 +181,16 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
           <Separator />
 
           {/* User Menu */}
-          <div className="p-4">
+          <div className="p-4 space-y-2">
+            {user && (
+              <div className="px-3 py-2 text-sm">
+                <div className="font-medium">{user.name}</div>
+                <div className="text-xs text-muted-foreground">{user.email}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Role: {user.role.replace(/_/g, " ")}
+                </div>
+              </div>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start"

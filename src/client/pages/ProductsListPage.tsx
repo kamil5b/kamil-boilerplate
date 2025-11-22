@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { ProductResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated, deleteResource } from "@/client/helpers";
 import {
   PageHeader,
@@ -10,6 +12,7 @@ import {
   ErrorAlert,
   LoadingSpinner,
   TableActions,
+  Protected,
 } from "@/client/components";
 import {
   Table,
@@ -21,6 +24,7 @@ import {
 } from "@/client/components/ui/table";
 import { Badge } from "@/client/components/ui/badge";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface ProductsListPageProps {
   onEdit: (id: string) => void;
@@ -28,6 +32,15 @@ interface ProductsListPageProps {
 }
 
 export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_PRODUCT)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: products,
     page,
@@ -64,6 +77,7 @@ export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
     }
   };
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading products..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -71,7 +85,7 @@ export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Products"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_PRODUCT) ? onCreate : undefined}
         createButtonText="Create Product"
       />
 
@@ -89,7 +103,9 @@ export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
               <TableHead>Type</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Created At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <Protected permissions={[AccessPermission.EDIT_PRODUCT, AccessPermission.DELETE_PRODUCT]}>
+                <TableHead className="text-right">Actions</TableHead>
+              </Protected>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,12 +124,14 @@ export function ProductsListPage({ onEdit, onCreate }: ProductsListPageProps) {
                   </TableCell>
                   <TableCell>{product.description}</TableCell>
                   <TableCell>{formatDateTime(product.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <TableActions
-                      onEdit={() => onEdit(product.id)}
-                      onDelete={() => handleDelete(product.id, product.name)}
-                    />
-                  </TableCell>
+                  <Protected permissions={[AccessPermission.EDIT_PRODUCT, AccessPermission.DELETE_PRODUCT]}>
+                    <TableCell className="text-right">
+                      <TableActions
+                        onEdit={can(AccessPermission.EDIT_PRODUCT) ? () => onEdit(product.id) : undefined}
+                        onDelete={can(AccessPermission.DELETE_PRODUCT) ? () => handleDelete(product.id, product.name) : undefined}
+                      />
+                    </TableCell>
+                  </Protected>
                 </TableRow>
               ))
             )}

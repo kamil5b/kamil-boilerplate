@@ -41,6 +41,7 @@ export const RBACPermissions: RBACPermission[] = [
       AccessPermission.MENU_TRANSACTION,
       AccessPermission.CREATE_TRANSACTION,
       AccessPermission.DETAIL_TRANSACTION,
+      AccessPermission.DASHBOARD_TRANSACTION,
       AccessPermission.MENU_PAYMENT,
       AccessPermission.CREATE_PAYMENT,
       AccessPermission.DETAIL_PAYMENT,
@@ -73,6 +74,7 @@ export const RBACPermissions: RBACPermission[] = [
       AccessPermission.MENU_TRANSACTION,
       AccessPermission.CREATE_TRANSACTION,
       AccessPermission.DETAIL_TRANSACTION,
+      // Note: Cashier does NOT have DASHBOARD_TRANSACTION
       AccessPermission.MENU_PAYMENT,
       AccessPermission.CREATE_PAYMENT,
       AccessPermission.DETAIL_PAYMENT,
@@ -94,6 +96,7 @@ export const RBACPermissions: RBACPermission[] = [
       AccessPermission.MENU_TRANSACTION,
       AccessPermission.CREATE_TRANSACTION,
       AccessPermission.DETAIL_TRANSACTION,
+      AccessPermission.DASHBOARD_TRANSACTION,
       AccessPermission.MENU_PAYMENT,
       AccessPermission.CREATE_PAYMENT,
       AccessPermission.DETAIL_PAYMENT,

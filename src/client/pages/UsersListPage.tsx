@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { UserResponse } from "@/shared/response";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated, deleteResource, formatRole, formatDate } from "@/client/helpers";
 import {
   PageHeader,
@@ -17,7 +19,9 @@ import {
   TableRow,
   TableActions,
   Badge,
+  Protected,
 } from "@/client/components";
+import { AccessPermission } from "@/shared/enums";
 
 interface UsersListPageProps {
   onEdit: (id: string) => void;
@@ -25,6 +29,15 @@ interface UsersListPageProps {
 }
 
 export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_USER)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: users,
     page,
@@ -53,11 +66,13 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
 
   if (isLoading) return <LoadingSpinner message="Loading users..." />;
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
+
   return (
     <div className="space-y-4">
       <PageHeader
         title="Users"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_USER) ? onCreate : undefined}
         createButtonText="Create User"
       />
       <ErrorAlert message={error} />
@@ -75,7 +90,9 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <Protected permissions={[AccessPermission.EDIT_USER, AccessPermission.DELETE_USER]}>
+                <TableHead className="text-right">Actions</TableHead>
+              </Protected>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -101,12 +118,14 @@ export function UsersListPage({ onEdit, onCreate }: UsersListPageProps) {
                   <TableCell className="text-muted-foreground">
                     {formatDate(user.createdAt)}
                   </TableCell>
-                  <TableCell>
-                    <TableActions
-                      onEdit={() => onEdit(user.id)}
-                      onDelete={() => handleDelete(user.id)}
-                    />
-                  </TableCell>
+                  <Protected permissions={[AccessPermission.EDIT_USER, AccessPermission.DELETE_USER]}>
+                    <TableCell>
+                      <TableActions
+                        onEdit={can(AccessPermission.EDIT_USER) ? () => onEdit(user.id) : undefined}
+                        onDelete={can(AccessPermission.DELETE_USER) ? () => handleDelete(user.id) : undefined}
+                      />
+                    </TableCell>
+                  </Protected>
                 </TableRow>
               ))
             )}

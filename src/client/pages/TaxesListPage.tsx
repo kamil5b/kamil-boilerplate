@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { TaxResponse } from "@/shared";
-import { usePagination } from "@/client/hooks";
+import { usePagination, usePermissions } from "@/client/hooks";
 import { fetchPaginated, deleteResource } from "@/client/helpers";
 import {
   PageHeader,
@@ -10,6 +12,7 @@ import {
   ErrorAlert,
   LoadingSpinner,
   TableActions,
+  Protected,
 } from "@/client/components";
 import {
   Table,
@@ -20,6 +23,7 @@ import {
   TableRow,
 } from "@/client/components/ui/table";
 import { formatDateTime } from "@/client/helpers";
+import { AccessPermission } from "@/shared/enums";
 
 interface TaxesListPageProps {
   onEdit: (id: string) => void;
@@ -27,6 +31,15 @@ interface TaxesListPageProps {
 }
 
 export function TaxesListPage({ onEdit, onCreate }: TaxesListPageProps) {
+  const router = useRouter();
+  const { can, isLoading: authLoading } = usePermissions();
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!can(AccessPermission.MENU_TAX)) {
+      router.push("/dashboard");
+    }
+  }, [can, authLoading, router]);
   const {
     data: taxes,
     page,
@@ -53,6 +66,7 @@ export function TaxesListPage({ onEdit, onCreate }: TaxesListPageProps) {
     }
   };
 
+  if (authLoading) return <LoadingSpinner message="Loading..." />;
   if (isLoading) return <LoadingSpinner message="Loading taxes..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -60,7 +74,7 @@ export function TaxesListPage({ onEdit, onCreate }: TaxesListPageProps) {
     <div className="space-y-6">
       <PageHeader
         title="Taxes"
-        onCreateClick={onCreate}
+        onCreateClick={can(AccessPermission.CREATE_TAX) ? onCreate : undefined}
         createButtonText="Create Tax"
       />
 
@@ -78,7 +92,9 @@ export function TaxesListPage({ onEdit, onCreate }: TaxesListPageProps) {
               <TableHead>Value (%)</TableHead>
               <TableHead>Remark</TableHead>
               <TableHead>Created At</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <Protected permissions={[AccessPermission.EDIT_TAX, AccessPermission.DELETE_TAX]}>
+                <TableHead className="text-right">Actions</TableHead>
+              </Protected>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,12 +111,14 @@ export function TaxesListPage({ onEdit, onCreate }: TaxesListPageProps) {
                   <TableCell>{tax.value}%</TableCell>
                   <TableCell>{tax.remark || "-"}</TableCell>
                   <TableCell>{formatDateTime(tax.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <TableActions
-                      onEdit={() => onEdit(tax.id)}
-                      onDelete={() => handleDelete(tax.id, tax.name)}
-                    />
-                  </TableCell>
+                  <Protected permissions={[AccessPermission.EDIT_TAX, AccessPermission.DELETE_TAX]}>
+                    <TableCell className="text-right">
+                      <TableActions
+                        onEdit={can(AccessPermission.EDIT_TAX) ? () => onEdit(tax.id) : undefined}
+                        onDelete={can(AccessPermission.DELETE_TAX) ? () => handleDelete(tax.id, tax.name) : undefined}
+                      />
+                    </TableCell>
+                  </Protected>
                 </TableRow>
               ))
             )}

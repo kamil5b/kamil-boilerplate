@@ -10,7 +10,6 @@ export default function InventoryHistoriesRoute() {
   return (
     <ProtectedLayout>
       <InventoryHistoriesListPage
-        onViewSummary={() => router.push("/inventory-histories/summary")}
         onManipulate={() => router.push("/inventory-histories/manipulate")}
       />
     </ProtectedLayout>

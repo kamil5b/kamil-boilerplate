@@ -1,4 +1,5 @@
 export * from "./auth.service";
+export * from "./me.service";
 export * from "./user.service";
 export * from "./customer.service";
 export * from "./unit_quantity.service";
