@@ -7,19 +7,23 @@ A complete POS (Point of Sale) and Inventory Management system built with Next.j
 - **Authentication System**: Login, register, forgot password, account activation with JWT
 - **User Management**: RBAC with 5 roles (Super Admin, Admin, Warehouse Manager, Cashier, Finance)
 - **Customer Management**: Full CRUD for customer data
-- **Product Management**: Products with types, units, and inventory tracking
-- **Inventory Management**: Real-time stock tracking, manipulation, and summaries
-- **Transaction Management**: Buy/Sell transactions with items, discounts, and taxes
+- **Product Management**: Products with types (Raw Material, Finished Goods, Service), units, and inventory tracking
+- **Unit Quantity Management**: Configurable units of measurement
+- **Inventory Management**: Real-time stock tracking, manipulation (add/remove), and detailed summaries
+- **Transaction Management**: Buy/Sell transactions with multiple items, discounts, and taxes
 - **Payment Management**: Multiple payment types (Cash, Card, QRIS, Transfer) with status tracking
 - **Tax Management**: Configurable tax rates
-- **Role-Based Access Control**: 47 granular permissions across all features
+- **Analytics & Reports**: Transaction summaries, product-specific reports, inventory summaries
+- **Role-Based Access Control**: Granular permissions across all features
 
 ## Tech Stack
 
 - **Frontend**: Next.js 16.0.3, React 19.2.0, TypeScript 5
+- **UI Library**: Radix UI primitives, Tailwind CSS v4, shadcn/ui components, lucide-react icons
+- **Charts**: Recharts for data visualization
 - **Backend**: Next.js API Routes with 3-layer architecture (Handler → Service → Repository)
-- **Database**: PostgreSQL with pg driver
-- **Authentication**: JWT tokens, bcryptjs for password hashing
+- **Database**: PostgreSQL with pg driver, raw SQL queries
+- **Authentication**: JWT tokens (jsonwebtoken), bcryptjs for password hashing
 - **Email**: nodemailer for account activation and password reset
 
 ## Project Structure
@@ -33,18 +37,40 @@ src/
 │   │   ├── customers/      # Customer CRUD
 │   │   ├── products/       # Product CRUD
 │   │   ├── taxes/          # Tax CRUD
+│   │   ├── unit-quantities/ # Unit quantity CRUD
 │   │   ├── inventory-histories/  # Inventory operations
 │   │   ├── transactions/   # Transaction management
-│   │   └── payments/       # Payment processing
+│   │   ├── payments/       # Payment processing
+│   │   ├── me/             # Current user info
+│   │   └── mail/           # Email utilities
+│   ├── (protected)/        # Protected routes
+│   │   ├── customers/      # Customer pages
+│   │   ├── dashboard/      # Dashboard
+│   │   ├── inventory-histories/  # Inventory pages
+│   │   ├── payments/       # Payment pages
+│   │   ├── products/       # Product pages
+│   │   ├── taxes/          # Tax pages
+│   │   ├── transactions/   # Transaction pages
+│   │   ├── unit-quantities/ # Unit quantity pages
+│   │   └── users/          # User pages
+│   ├── (public)/           # Public routes
+│   │   ├── login/          # Login page
+│   │   └── register/       # Register page
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
+├── client/                  # Client-side code
+│   ├── components/         # Reusable UI components
+│   ├── helpers/            # Utility functions
+│   ├── hooks/              # Custom React hooks
+│   ├── layouts/            # Layout components
+│   └── pages/              # Page components
 ├── server/                  # Server-side code
 │   ├── db/                 # Database connection pool
-│   ├── repositories/       # Data access layer (SQL)
+│   ├── handlers/           # HTTP request handlers
 │   ├── services/           # Business logic + transactions
-│   ├── handlers/           # HTTP handlers
-│   └── utils/              # Utilities (auth, error, RBAC)
+│   ├── repositories/       # Data access layer (SQL)
+│   └── utils/              # Utilities (auth, error, email)
 └── shared/                  # Shared types
     ├── entities/           # Database entity interfaces
     ├── enums/              # Application enums
@@ -52,7 +78,7 @@ src/
     ├── response/           # API response types
     └── rbac/               # RBAC configuration
 
-migrations/                  # SQL migration files
+migrations/                  # SQL migration files (11 migrations)
 docs/                       # Documentation
 ```
 
@@ -312,12 +338,13 @@ See `.env.example` for all required variables:
 
 See `docs/` folder for detailed documentation:
 
-- `CLIENT.md` - Client-side implementation guide
-- `SERVER.md` - Server-side architecture
-- `SHARED.md` - Shared types and interfaces
-- `RBAC.md` - Role-based access control
-- `TECH.md` - Technical specifications
-- `STEP-BY-STEP-GUIDE.md` - Development guide
+- `CLIENT.md` - Client-side implementation guide (components, pages, hooks, helpers)
+- `SERVER.md` - Server-side architecture (3-layer pattern, handlers, services, repositories)
+- `SHARED.md` - Shared types and interfaces (entities, enums, request/response types)
+- `RBAC.md` - Role-based access control (permissions, roles, Protected component)
+- `TECH.md` - Technical specifications (architecture rules, patterns, conventions)
+- `STEP-BY-STEP-GUIDE.md` - Development guide (step-by-step instructions)
+- `SMTP_CONFIGURATION.md` - Email configuration guide
 
 ## License
 

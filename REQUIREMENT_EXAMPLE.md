@@ -181,6 +181,17 @@ Create CRUD Dashboard:
         - Created By*
     - Create
     - Detail
+    - Dashboard
+        - Customer Summary Payment (include the null customer from null transaction, called it Anonymous)
+            - Name
+            - Payable
+            - Recievable
+        - Customer Line Graph
+            - X: date
+            - Y: amount
+            - Line Green: Payable
+            - Line Red: Recievable
+            - Line Blue: Net
 
 
 - RBAC:

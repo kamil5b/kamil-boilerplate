@@ -31,20 +31,27 @@ Controller (backend):
 View (frontend):
 - folder name inside src: `client`
 - Modular architecture with organized folders:
-  - `client/pages/` - Page components (imported by app routes)
+  - `client/pages/` - Page components (25 page components)
+    - List pages: UsersListPage, CustomersListPage, ProductsListPage, etc.
+    - Form pages: UserFormPage, CustomerFormPage, ProductFormPage, etc.
+    - Detail pages: TransactionDetailPage, PaymentDetailPage, ProductInventoryDetailPage, etc.
+    - Dashboard pages: DashboardPage, TransactionDashboardPage
+    - Auth pages: LoginPage, RegisterPage
   - `client/layouts/` - Layout components (ProtectedLayout, PublicLayout)
-  - `client/components/` - shadcn/ui components (ui folder)
-    - Includes `PaginatedSelect` - searchable dropdown with infinite scroll and filters
-  - `client/hooks/` - Custom React hooks (useAuth, usePagination)
-  - `client/helpers/` - Utility functions (api, formatters, validation)
+  - `client/components/` - Reusable UI components
+    - shadcn/ui base components (ui folder)
+    - Composed components: PageHeader, SearchBar, Pagination, TableActions, etc.
+    - Form components: FormField, PaginatedSelect, ErrorAlert, LoadingSpinner
+    - Protected component for conditional rendering based on permissions
+  - `client/hooks/` - Custom React hooks (useAuth, usePagination, usePermissions, useDebounce)
+  - `client/helpers/` - Utility functions (api, formatters, validation, rbac)
   - `client/utils.ts` - shadcn/ui cn utility
 - React 19 based
 - Tailwind CSS v4 + shadcn/ui for styling
 - lucide-react for icons
-- Additional dependencies for advanced components:
-  - cmdk - Command palette primitives
-  - @radix-ui/react-popover - Popover component
-  - @radix-ui/react-icons - Icon library
+- recharts for data visualization
+- Additional Radix UI primitives:
+  - @radix-ui/react-label, react-select, react-separator, react-slot
 
 App Route rules:
 - `src/app/api/**/route.ts` **ONLY** import from `@/server/handlers`

@@ -34,13 +34,24 @@ App Route → Page Component → Layout → Components → UI Elements
    - Handle data fetching and state management
    - Compose multiple components
    - Receive callback props for navigation
-   - Examples: `UsersListPage`, `UserFormPage`, `LoginPage`
+   - **25 Page Components**:
+     - Auth: `LoginPage`, `RegisterPage`
+     - Dashboard: `DashboardPage`, `TransactionDashboardPage`
+     - Users: `UsersListPage`, `UserFormPage`
+     - Customers: `CustomersListPage`, `CustomerFormPage`
+     - Products: `ProductsListPage`, `ProductFormPage`, `ProductInventoryDetailPage`, `ProductTransactionDetailPage`
+     - Unit Quantities: `UnitQuantitiesListPage`, `UnitQuantityFormPage`
+     - Taxes: `TaxesListPage`, `TaxFormPage`
+     - Inventory: `InventoryHistoriesListPage`, `InventoryManipulatePage`, `InventorySummaryPage`
+     - Transactions: `TransactionsListPage`, `TransactionFormPage`, `TransactionDetailPage`
+     - Payments: `PaymentsListPage`, `PaymentFormPage`, `PaymentDetailPage`
 
 2. **Layouts** (`layouts/`)
    - Wrap page content with common structure
    - Handle authentication checks
    - Provide navigation (sidebar, header)
-   - Two types: `ProtectedLayout` and `PublicLayout`
+   - Two types: `ProtectedLayout` (with sidebar) and `PublicLayout`
+   - Sidebar navigation filtered by user permissions
 
 3. **Components** (`components/`)
    - Reusable UI building blocks
@@ -52,7 +63,11 @@ App Route → Page Component → Layout → Components → UI Elements
    - Custom React hooks for shared logic
    - State management patterns
    - Side effect encapsulation
-   - Examples: `useAuth`, `usePagination`
+   - **Available Hooks**:
+     - `useAuth` - Authentication state and operations
+     - `usePagination` - Pagination and data fetching
+     - `usePermissions` - RBAC permission checks
+     - `useDebounce` - Debounce values for search/input
 
 5. **Helpers** (`helpers/`)
    - Pure utility functions
@@ -132,6 +147,20 @@ import { ErrorAlert } from '@/client/components';
 import { LoadingSpinner } from '@/client/components';
 
 {isLoading && <LoadingSpinner message="Loading users..." />}
+```
+
+**Protected** - Conditional rendering based on permissions
+```tsx
+import { Protected } from '@/client/components';
+import { AccessPermission } from '@/shared';
+
+<Protected permission={AccessPermission.CREATE_USER}>
+  <Button>Create User</Button>
+</Protected>
+
+<Protected permissions={[AccessPermission.EDIT_USER, AccessPermission.DELETE_USER]}>
+  <Button>Manage User</Button>
+</Protected>
 ```
 
 **PaginatedSelect** - Searchable dropdown with infinite scroll
@@ -239,7 +268,101 @@ function UsersPage() {
 - Loading states
 - Pagination controls
 
+#### `usePermissions`
+
+Role-based access control permission checks.
+
+```tsx
+import { usePermissions } from '@/client/hooks';
+import { AccessPermission } from '@/shared';
+
+function MyComponent() {
+  const { can, canAny, canAll, role, isLoading } = usePermissions();
+  
+  // Check single permission
+  if (can(AccessPermission.CREATE_USER)) {
+    // Show create button
+  }
+  
+  // Check any of multiple permissions
+  if (canAny([AccessPermission.EDIT_USER, AccessPermission.DELETE_USER])) {
+    // Show manage button
+  }
+  
+  // Check all permissions
+  if (canAll([AccessPermission.DETAIL_PRODUCT, AccessPermission.EDIT_PRODUCT])) {
+    // Show edit product details button
+  }
+  
+  return <div>Your role: {role}</div>;
+}
+```
+
+**Features**:
+- Check single or multiple permissions
+- Get current user role
+- Loading state during auth check
+- Based on user info from `/api/me` endpoint
+
+#### `useDebounce`
+
+Debounce values for search inputs.
+
+```tsx
+import { useDebounce } from '@/client/hooks';
+
+function SearchComponent() {
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
+  
+  useEffect(() => {
+    // This only runs 500ms after user stops typing
+    fetchResults(debouncedSearch);
+  }, [debouncedSearch]);
+}
+```
+
 ### 3. Helpers (`helpers/`)
+
+#### RBAC Functions (`helpers/rbac.ts`)
+
+**hasPermission** - Check if user has a specific permission
+```tsx
+import { hasPermission } from '@/client/helpers';
+import { UserRole, AccessPermission } from '@/shared';
+
+const canCreate = hasPermission(UserRole.CASHIER, AccessPermission.CREATE_TRANSACTION);
+// returns true or false
+```
+
+**hasAnyPermission** - Check if user has any of the permissions
+```tsx
+import { hasAnyPermission } from '@/client/helpers';
+
+const canManage = hasAnyPermission(
+  UserRole.ADMIN,
+  [AccessPermission.EDIT_USER, AccessPermission.DELETE_USER]
+);
+```
+
+**hasAllPermissions** - Check if user has all permissions
+```tsx
+import { hasAllPermissions } from '@/client/helpers';
+
+const canFullAccess = hasAllPermissions(
+  UserRole.FINANCE,
+  [AccessPermission.DETAIL_TRANSACTION, AccessPermission.SUMMARY_TRANSACTION]
+);
+```
+
+**getUserPermissions** - Get all permissions for a role
+```tsx
+import { getUserPermissions } from '@/client/helpers';
+import { UserRole } from '@/shared';
+
+const permissions = getUserPermissions(UserRole.WAREHOUSE_MANAGER);
+// returns array of AccessPermission
+```
 
 #### API Functions (`helpers/api.ts`)
 

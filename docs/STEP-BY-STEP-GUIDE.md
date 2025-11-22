@@ -12,12 +12,16 @@
 - Location: `src/shared/entities/<name>.entity.ts`
 - Define entity interface matching database schema
 - Include `id`, `createdAt`, `updatedAt`, `deletedAt` fields
+- Use camelCase for property names (snake_case in DB will be mapped)
 - Export from `src/shared/entities/index.ts`
+- Examples: `user.entity.ts`, `customer.entity.ts`, `product.entity.ts`
 
 ### 2.2 Create Enums (if applicable)
 - Location: `src/shared/enums/<name>.enum.ts`
 - Define domain-specific enums (Status, Type, Category, etc.)
+- Use lowercase with underscores for enum values (e.g., `raw_material`, `finished_goods`)
 - Export from `src/shared/enums/index.ts`
+- Examples: `product.enum.ts` (ProductType), `transaction.enum.ts` (TransactionType, TransactionStatus), `payment.enum.ts` (PaymentType, PaymentStatus)
 
 ### 2.3 Create Request Types
 - Location: `src/shared/request/<name>.request.ts`
@@ -34,9 +38,15 @@
 
 ### 2.5 Update RBAC (if adding permissions)
 - Location: `src/shared/enums/access_permission.enum.ts`
-- Add new permissions (MENU_*, CREATE_*, EDIT_*, DELETE_*, etc.)
+- Add new permissions following the pattern:
+  - `MENU_*` - Can see menu item (e.g., `MENU_PRODUCT`, `MENU_TRANSACTION`)
+  - `CREATE_*` - Can create resource (e.g., `CREATE_PRODUCT`, `CREATE_TRANSACTION`)
+  - `DETAIL_*` - Can view details (e.g., `DETAIL_PRODUCT`, `DETAIL_TRANSACTION`)
+  - `EDIT_*` - Can edit resource (e.g., `EDIT_PRODUCT`, `EDIT_TRANSACTION`)
+  - `DELETE_*` - Can delete resource (e.g., `DELETE_PRODUCT`, `DELETE_TRANSACTION`)
+  - `SUMMARY_*` - Can view summaries (e.g., `SUMMARY_TRANSACTION`, `SUMMARY_INVENTORY_HISTORY`)
 - Location: `src/shared/rbac/rbac.ts`
-- Update role permissions array
+- Update role permissions array for relevant roles (super_admin, admin, warehouse_manager, cashier, finance)
 
 Note: All types are automatically available from `@/shared` or specific subfolders
 
@@ -348,13 +358,14 @@ export async function DELETE(
 - Use shadcn/ui components from `@/client/components`:
   - `PageHeader` - title with create button
   - `SearchBar` - search input
-  - `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableCell` - data display
-  - `TableActions` - edit/delete buttons
+  - `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` - data display
+  - `TableActions` - view/edit/delete buttons
   - `Pagination` - page navigation
   - `LoadingSpinner` - loading state
   - `ErrorAlert` - error display
-  - `Button` with lucide-react icons (Plus, Pencil, Trash2, Search)
-  - `Badge` for status/tags (if needed)
+  - `Button` with lucide-react icons (Plus, Eye, Pencil, Trash2)
+  - `Badge` for status/tags (e.g., transaction status, payment status)
+  - `Protected` component for permission-based rendering (optional)
 - Accept `onEdit` and `onCreate` callback props (for navigation)
 - Include search functionality with debouncing
 - Add delete with confirmation dialog
@@ -535,7 +546,7 @@ export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps)
     name: '',
     email: '',
     phoneNumber: '',
-    role: UserRole.OPERATION,
+    role: UserRole.CASHIER,
   });
   const [isLoading, setIsLoading] = useState(isEdit);
   const [isSaving, setIsSaving] = useState(false);
@@ -732,7 +743,7 @@ export default function CreateUserPage() {
 }
 ```
 
-**Edit route:** `src/app/(protected)/<names>/[id]/edit/page.tsx`
+**Edit route:** `src/app/(protected)/<names>/[id]/page.tsx`
 ```typescript
 'use client';
 
@@ -755,6 +766,8 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 }
 ```
 
+**Note:** The edit page can use the same path as detail view (`[id]/page.tsx`) or separate path (`[id]/edit/page.tsx`) depending on your routing preference.
+
 ### 5.5 Update Sidebar Navigation (if needed)
 - Location: `src/client/layouts/sidebar.json`
 - Add new menu item:
@@ -770,7 +783,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 }
 ```
 
-Available icons: `dashboard`, `users`, `store`, `briefcase`, `fileText`, `package`, `truck`, `settings`
+Available icons from lucide-react: `LayoutDashboard`, `Users`, `Store`, `Package`, `Boxes`, `History`, `Receipt`, `CreditCard`, `DollarSign`, `Percent`, `Settings`
 
 ## 6. Architecture Checklist
 
@@ -816,6 +829,8 @@ Before committing, ensure:
 - [ ] Implements loading states
 - [ ] Implements error handling
 - [ ] Uses shadcn/ui components consistently
+- [ ] Uses `Protected` component for permission-based UI (optional)
+- [ ] Uses `usePermissions` hook for conditional logic (optional)
 - [ ] Exports from `pages/index.ts`
 
 ### Route Components ✓
@@ -917,51 +932,125 @@ Before committing, ensure:
 ### Using PaginatedSelect
 ```typescript
 import { PaginatedSelect } from '@/client/components';
-import type { VendorResponse } from '@/shared';
+import type { CustomerResponse } from '@/shared';
 
-<PaginatedSelect<VendorResponse>
-  endpoint="/api/vendors"
-  value={vendorId}
-  onChange={setVendorId}
-  placeholder="Select vendor"
-  displayValue={(vendor) => vendor.name}
-  getId={(vendor) => vendor.id}
-  label="Vendor"
+<PaginatedSelect<CustomerResponse>
+  endpoint="/api/customers"
+  value={customerId}
+  onChange={setCustomerId}
+  placeholder="Select customer"
+  displayValue={(customer) => customer.name}
+  filterValue={(customer) => `${customer.name} ${customer.email || ''} ${customer.phoneNumber || ''}`}
+  getId={(customer) => customer.id}
+  label="Customer"
   allowClear
+  pageSize={20}
 />
 ```
 
 ### Complex Transaction Example
 ```typescript
-// Service - Multiple operations in one transaction
-async createOrderWithItems(data: CreateOrderRequest): Promise<OrderResponse> {
+// Service - Multiple operations in one transaction (POS Transaction with Items)
+async createTransaction(data: CreateTransactionRequest): Promise<TransactionResponse> {
   const client = await getDbClient();
   
   try {
     await client.query('BEGIN');
     
     // 1. Validate
-    if (data.items.length === 0) {
-      throw new AppError('Order must have items', 400);
+    if (!data.items || data.items.length === 0) {
+      throw new AppError('Transaction must have at least one item', 400);
     }
     
-    // 2. Create order
-    const order = await orderRepo.create(client, data);
+    // 2. Validate customer exists (if provided)
+    if (data.customerId) {
+      const customer = await customerRepo.findById(client, data.customerId);
+      if (!customer) {
+        throw new AppError('Customer not found', 404);
+      }
+    }
     
-    // 3. Create items (all in same transaction)
+    // 3. Create transaction
+    const transaction = await transactionRepo.create(client, {
+      customerId: data.customerId,
+      type: data.type,
+      status: TransactionStatus.PENDING,
+      subtotal: 0,
+      discountAmount: 0,
+      taxAmount: 0,
+      total: 0,
+      createdBy: data.createdBy,
+    });
+    
+    // 4. Create transaction items
+    let subtotal = 0;
     for (const item of data.items) {
-      await orderItemRepo.create(client, {
-        orderId: order.id,
-        ...item
+      // Validate product exists
+      const product = await productRepo.findById(client, item.productId);
+      if (!product) {
+        throw new AppError(`Product ${item.productId} not found`, 404);
+      }
+      
+      const itemTotal = item.quantity * item.price;
+      subtotal += itemTotal;
+      
+      await transactionItemRepo.create(client, {
+        transactionId: transaction.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+        total: itemTotal,
       });
+      
+      // Update inventory for sell transactions
+      if (data.type === TransactionType.SELL) {
+        await inventoryHistoryRepo.create(client, {
+          productId: item.productId,
+          quantity: -item.quantity,
+          type: 'remove',
+          transactionId: transaction.id,
+          createdBy: data.createdBy,
+        });
+      }
     }
     
-    // 4. Update totals
-    const total = data.items.reduce((sum, item) => sum + item.total, 0);
-    await orderRepo.update(client, order.id, { total });
+    // 5. Apply discounts
+    let discountAmount = 0;
+    if (data.discounts) {
+      for (const discount of data.discounts) {
+        await discountRepo.create(client, {
+          transactionId: transaction.id,
+          ...discount,
+        });
+        discountAmount += discount.amount;
+      }
+    }
+    
+    // 6. Calculate taxes
+    let taxAmount = 0;
+    if (data.taxIds && data.taxIds.length > 0) {
+      for (const taxId of data.taxIds) {
+        const tax = await taxRepo.findById(client, taxId);
+        if (tax) {
+          taxAmount += (subtotal - discountAmount) * (tax.rate / 100);
+        }
+      }
+    }
+    
+    // 7. Update transaction totals
+    const total = subtotal - discountAmount + taxAmount;
+    await transactionRepo.update(client, transaction.id, {
+      subtotal,
+      discountAmount,
+      taxAmount,
+      total,
+    });
     
     await client.query('COMMIT');
-    return mapOrderToResponse(order);
+    
+    // 8. Fetch complete transaction with relations
+    const completeTransaction = await transactionRepo.findById(client, transaction.id);
+    return mapTransactionToResponse(completeTransaction);
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -973,8 +1062,10 @@ async createOrderWithItems(data: CreateOrderRequest): Promise<OrderResponse> {
 
 ## Related Documentation
 
-- [Client Architecture](/src/client/README.md) - Frontend documentation
-- [Server Architecture](/src/server/README.md) - Backend documentation  
-- [Shared Types](/src/shared/README.md) - Type definitions
-- [TECH.md](/TECH.md) - Technology stack
-- [IMPLEMENTATION.md](/IMPLEMENTATION.md) - Implementation details
+- [CLIENT.md](./CLIENT.md) - Client-side architecture and components
+- [SERVER.md](./SERVER.md) - Server-side architecture and 3-layer pattern
+- [SHARED.md](./SHARED.md) - Shared types, entities, enums, and interfaces
+- [RBAC.md](./RBAC.md) - Role-based access control guide
+- [TECH.md](./TECH.md) - Technology stack and architecture rules
+- [SMTP_CONFIGURATION.md](./SMTP_CONFIGURATION.md) - Email configuration guide
+- [README.md](../README.md) - Project overview and setup

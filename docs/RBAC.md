@@ -165,14 +165,11 @@ if (!hasPermission(payload.role, AccessPermission.CREATE_USER)) {
 
 | Role | Description |
 |------|-------------|
-| `super_admin` | Full system access |
-| `admin_vm` | Vendor Management admin |
-| `admin_trucking` | Trucking admin |
-| `sales_vm` | Vendor Management sales |
-| `sales_trucking` | Trucking sales |
-| `finance` | Finance department |
-| `operation` | Operations team |
-| `cashier` | Cashier role |
+| `super_admin` | Full system access - all permissions |
+| `admin` | Administrative access - all features except user management |
+| `warehouse_manager` | Warehouse operations - products, inventory, unit quantities |
+| `cashier` | Point of sale - customers, transactions, payments (create & read) |
+| `finance` | Financial operations - transactions, payments, taxes (read & manage) |
 
 ## Permission Structure
 
@@ -193,37 +190,66 @@ Examples:
 ### Finance
 ```typescript
 permissions: [
-  AccessPermission.MENU_VENDOR,
-  AccessPermission.DETAIL_VENDOR,
-  AccessPermission.CREATE_VENDOR,
-  AccessPermission.MENU_CLIENT,
-  AccessPermission.DETAIL_CLIENT,
-  AccessPermission.CREATE_CLIENT,
-  AccessPermission.MENU_CLIENT_PURCHASE_ORDER,
-  AccessPermission.DETAIL_CLIENT_PURCHASE_ORDER,
+  AccessPermission.MENU_TRANSACTION,
+  AccessPermission.DETAIL_TRANSACTION,
+  AccessPermission.SUMMARY_TRANSACTION,
+  AccessPermission.MENU_PAYMENT,
+  AccessPermission.CREATE_PAYMENT,
+  AccessPermission.DETAIL_PAYMENT,
+  AccessPermission.EDIT_PAYMENT,
+  AccessPermission.DELETE_PAYMENT,
+  AccessPermission.MENU_TAX,
+  AccessPermission.CREATE_TAX,
+  AccessPermission.DETAIL_TAX,
+  AccessPermission.EDIT_TAX,
+  AccessPermission.DELETE_TAX,
+  // ... more permissions
 ]
 ```
-- Can view and create vendors and clients
-- Can view purchase orders (but not create/edit)
+- Full access to payments and taxes
+- Read-only access to transactions with summary reports
+- Can view customers and inventory summaries
 
-### Sales Roles (VM/Trucking)
+### Warehouse Manager
 ```typescript
 permissions: [
-  AccessPermission.MENU_CLIENT_PURCHASE_ORDER,
-  AccessPermission.DETAIL_CLIENT_PURCHASE_ORDER,
+  AccessPermission.MENU_PRODUCT,
+  AccessPermission.CREATE_PRODUCT,
+  AccessPermission.DETAIL_PRODUCT,
+  AccessPermission.EDIT_PRODUCT,
+  AccessPermission.DELETE_PRODUCT,
+  AccessPermission.MENU_INVENTORY_HISTORY,
+  AccessPermission.CREATE_INVENTORY_HISTORY,
+  AccessPermission.DETAIL_INVENTORY_HISTORY,
+  AccessPermission.SUMMARY_INVENTORY_HISTORY,
+  AccessPermission.MENU_UNIT_QUANTITY,
+  // ... more permissions
 ]
 ```
-- Read-only access to purchase orders
+- Full access to products, inventory, and unit quantities
+- Read-only access to transactions
 
-### Admin Roles (VM/Trucking)
+### Cashier
 ```typescript
 permissions: [
-  AccessPermission.MENU_CLIENT_PURCHASE_ORDER,
-  AccessPermission.DETAIL_CLIENT_PURCHASE_ORDER,
-  AccessPermission.CREATE_CLIENT_PURCHASE_ORDER,
+  AccessPermission.MENU_CUSTOMER,
+  AccessPermission.CREATE_CUSTOMER,
+  AccessPermission.DETAIL_CUSTOMER,
+  AccessPermission.EDIT_CUSTOMER,
+  AccessPermission.DELETE_CUSTOMER,
+  AccessPermission.MENU_TRANSACTION,
+  AccessPermission.CREATE_TRANSACTION,
+  AccessPermission.DETAIL_TRANSACTION,
+  AccessPermission.MENU_PAYMENT,
+  AccessPermission.CREATE_PAYMENT,
+  AccessPermission.DETAIL_PAYMENT,
+  // ... more permissions
 ]
 ```
-- Can view and create purchase orders
+- Full access to customers
+- Can create and view transactions
+- Can create and view payments
+- Read-only access to products and taxes
 
 ## Security Considerations
 

@@ -235,40 +235,99 @@ export function createUserRepository(): UserRepository {
 - **Repository**: `UserRepository`
 - **Features**:
   - CRUD operations for users
-  - Role-based filtering
+  - Role-based filtering (5 roles: super_admin, admin, warehouse_manager, cashier, finance)
   - Search by name/email
   - Pagination and sorting
   - Password management
+  - User activation via email
 
-### 3. Clients (`client.*`)
-- **Handler**: `ClientHandler`
-- **Service**: `ClientService`
-- **Repository**: `ClientRepository`
+### 3. Customers (`customer.*`)
+- **Handler**: `CustomerHandler`
+- **Service**: `CustomerService`
+- **Repository**: `CustomerRepository`
 - **Features**:
-  - CRUD operations for clients
+  - CRUD operations for customers
+  - Search by name, email, phone
+  - Pagination
+  - Soft deletes
+
+### 4. Products (`product.*`)
+- **Handler**: `ProductHandler`
+- **Service**: `ProductService`
+- **Repository**: `ProductRepository`
+- **Features**:
+  - CRUD operations for products
+  - Product types: raw_material, finished_goods, service
+  - Unit quantity associations
+  - Search and filtering by type
+  - Pagination
+  - Soft deletes
+
+### 5. Unit Quantities (`unit_quantity.*`)
+- **Handler**: `UnitQuantityHandler`
+- **Service**: `UnitQuantityService`
+- **Repository**: `UnitQuantityRepository`
+- **Features**:
+  - CRUD operations for unit quantities (e.g., kg, pcs, liter)
   - Search and filtering
   - Pagination
   - Soft deletes
 
-### 4. Vendors (`vendor.*`)
-- **Handler**: `VendorHandler`
-- **Service**: `VendorService`
-- **Repository**: `VendorRepository`
+### 6. Taxes (`tax.*`)
+- **Handler**: `TaxHandler`
+- **Service**: `TaxService`
+- **Repository**: `TaxRepository`
 - **Features**:
-  - CRUD operations for vendors
+  - CRUD operations for taxes
+  - Configurable tax rates
   - Search and filtering
   - Pagination
   - Soft deletes
 
-### 5. Client Purchase Orders (`clientPurchaseOrder.*`)
-- **Handler**: `ClientPurchaseOrderHandler`
-- **Service**: `ClientPurchaseOrderService`
-- **Repository**: `ClientPurchaseOrderRepository`
+### 7. Inventory Histories (`inventory_history.*`)
+- **Handler**: `InventoryHistoryHandler`
+- **Service**: `InventoryHistoryService`
+- **Repository**: `InventoryHistoryRepository`
 - **Features**:
-  - CRUD operations for purchase orders
-  - Status filtering
-  - Client-based filtering
-  - Pagination
+  - Track inventory changes (add/remove stock)
+  - Filter by product and date range
+  - Inventory summary reports
+  - Product-specific inventory details
+  - Real-time stock calculations
+
+### 8. Transactions (`transaction.*`)
+- **Handler**: `TransactionHandler`
+- **Service**: `TransactionService`
+- **Repository**: `TransactionRepository`
+- **Features**:
+  - Create buy/sell transactions
+  - Multiple transaction items per transaction
+  - Apply discounts and taxes
+  - Transaction status tracking (pending, partial, paid, cancelled)
+  - Filter by type, status, customer, date range
+  - Transaction summary analytics
+  - Product-specific transaction analytics
+  - Complex transactional integrity (transaction → items → discounts → payments)
+
+### 9. Payments (`payment.*`)
+- **Handler**: `PaymentHandler`
+- **Service**: `PaymentService`
+- **Repository**: `PaymentRepository`
+- **Features**:
+  - Create payments for transactions
+  - Multiple payment types: cash, card, qris, transfer
+  - Payment status: pending, completed, failed
+  - Auto-update transaction status on payment completion
+  - Payment details tracking (card last 4, transfer reference)
+  - Filter by type, transaction, date range
+
+### 10. Me (`me.*`)
+- **Handler**: `MeHandler`
+- **Service**: `MeService`
+- **Features**:
+  - Get current user information
+  - Returns user ID, email, role
+  - Protected endpoint (requires JWT)
 
 ## 🔧 Key Components
 

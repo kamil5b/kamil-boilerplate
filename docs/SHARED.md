@@ -21,14 +21,16 @@ Database entity interfaces that match the database schema. Each entity represent
 
 **Files:**
 - `user.entity.ts` - User entity with roles
-- `vendor.entity.ts` - Vendor entity
-- `client.entity.ts` - Client entity
-- `client_purchase_order.entity.ts` - Client purchase order entity
-- `vendor_purchase_order.entity.ts` - Vendor purchase order entity
-- `cost_code.entity.ts` - Cost code entity
-- `vehicle.entity.ts` - Vehicle entity
+- `customer.entity.ts` - Customer entity
+- `product.entity.ts` - Product entity with types and units
+- `unit_quantity.entity.ts` - Unit quantity entity
 - `tax.entity.ts` - Tax entity
-- `file_upload.entity.ts` - File upload entity
+- `inventory_history.entity.ts` - Inventory history entity
+- `transaction.entity.ts` - Transaction entity (buy/sell)
+- `transaction_item.entity.ts` - Transaction item entity
+- `discount.entity.ts` - Discount entity
+- `payment.entity.ts` - Payment entity
+- `payment_detail.entity.ts` - Payment detail entity
 
 **Example:**
 ```typescript
@@ -41,10 +43,12 @@ import { User } from "@/shared";
 Application-wide enumerations organized by domain.
 
 **Files:**
-- `user.enum.ts` - UserRole enum
-- `access_permission.enum.ts` - AccessPermission enum
-- `purchase_order.enum.ts` - PurchaseOrderStatus, PurchaseOrderCategory, PurchaseOrderType
-- `vendor_purchase_order.enum.ts` - VendorPurchaseOrderStatus, VendorPurchaseOrderType
+- `user.enum.ts` - UserRole enum (super_admin, admin, warehouse_manager, cashier, finance)
+- `access_permission.enum.ts` - AccessPermission enum (granular permissions)
+- `product.enum.ts` - ProductType enum (raw_material, finished_goods, service)
+- `transaction.enum.ts` - TransactionType, TransactionStatus enums
+- `payment.enum.ts` - PaymentType, PaymentStatus enums
+- `discount.enum.ts` - DiscountType enum
 
 **Example:**
 ```typescript
@@ -72,13 +76,14 @@ Request types for API endpoints organized by domain.
 **Files:**
 - `common.request.ts` - PaginationRequest (base for all list queries)
 - `user.request.ts` - CreateUserRequest, UpdateUserRequest, GetUsersRequest
-- `vendor.request.ts` - CreateVendorRequest, UpdateVendorRequest, GetVendorsRequest
-- `client.request.ts` - CreateClientRequest, UpdateClientRequest, GetClientsRequest
-- `auth.request.ts` - LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
-- `client_purchase_order.request.ts` - Client PO request types
-- `vendor_purchase_order.request.ts` - Vendor PO request types
-- `cost_code.request.ts` - Cost code request types
-- `vehicle.request.ts` - Vehicle request types
+- `customer.request.ts` - CreateCustomerRequest, UpdateCustomerRequest, GetCustomersRequest
+- `product.request.ts` - CreateProductRequest, UpdateProductRequest, GetProductsRequest
+- `unit_quantity.request.ts` - CreateUnitQuantityRequest, UpdateUnitQuantityRequest, GetUnitQuantitiesRequest
+- `tax.request.ts` - CreateTaxRequest, UpdateTaxRequest, GetTaxesRequest
+- `inventory_history.request.ts` - CreateInventoryHistoryRequest, GetInventoryHistoriesRequest, GetInventorySummaryRequest
+- `transaction.request.ts` - CreateTransactionRequest, GetTransactionsRequest, GetTransactionSummaryRequest
+- `payment.request.ts` - CreatePaymentRequest, GetPaymentsRequest
+- `auth.request.ts` - LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, ActivateAccountRequest
 
 **Example:**
 ```typescript
@@ -93,11 +98,14 @@ Response types for API endpoints organized by domain.
 **Files:**
 - `common.response.ts` - BaseResponse, PaginationMeta, PaginatedResponse
 - `user.response.ts` - UserResponse
-- `vendor.response.ts` - VendorResponse
-- `client.response.ts` - ClientResponse
-- `auth.response.ts` - LoginResponse, AuthTokenPayload
+- `customer.response.ts` - CustomerResponse
+- `product.response.ts` - ProductResponse
+- `unit_quantity.response.ts` - UnitQuantityResponse
 - `tax.response.ts` - TaxResponse
-- `client_purchase_order.response.ts` - Client PO response types
+- `inventory_history.response.ts` - InventoryHistoryResponse, InventorySummaryResponse
+- `transaction.response.ts` - TransactionResponse, TransactionSummaryResponse, ProductTransactionSummaryResponse
+- `payment.response.ts` - PaymentResponse
+- `auth.response.ts` - LoginResponse, AuthTokenPayload, MeResponse
 - `vendor_purchase_order.response.ts` - Vendor PO response types
 - `cost_code.response.ts` - CostCodeResponse
 - `vehicle.response.ts` - VehicleResponse
