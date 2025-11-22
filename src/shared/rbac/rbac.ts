@@ -1,0 +1,104 @@
+import { UserRole } from "../enums/user.enum";
+import { AccessPermission } from "../enums/access_permission.enum";
+
+export interface RBACPermission {
+  role: UserRole;
+  permissions: AccessPermission[];
+}
+
+export const RBACPermissions: RBACPermission[] = [
+  {
+    role: UserRole.SUPER_ADMIN,
+    permissions: Object.values(AccessPermission),
+  },
+  {
+    role: UserRole.ADMIN,
+    permissions: [
+      // All permissions except user management
+      AccessPermission.MENU_CUSTOMER,
+      AccessPermission.CREATE_CUSTOMER,
+      AccessPermission.DETAIL_CUSTOMER,
+      AccessPermission.EDIT_CUSTOMER,
+      AccessPermission.DELETE_CUSTOMER,
+      AccessPermission.MENU_UNIT_QUANTITY,
+      AccessPermission.CREATE_UNIT_QUANTITY,
+      AccessPermission.DETAIL_UNIT_QUANTITY,
+      AccessPermission.EDIT_UNIT_QUANTITY,
+      AccessPermission.DELETE_UNIT_QUANTITY,
+      AccessPermission.MENU_PRODUCT,
+      AccessPermission.CREATE_PRODUCT,
+      AccessPermission.DETAIL_PRODUCT,
+      AccessPermission.EDIT_PRODUCT,
+      AccessPermission.DELETE_PRODUCT,
+      AccessPermission.MENU_INVENTORY,
+      AccessPermission.MANIPULATE_INVENTORY,
+      AccessPermission.DETAIL_INVENTORY,
+      AccessPermission.MENU_TAX,
+      AccessPermission.CREATE_TAX,
+      AccessPermission.DETAIL_TAX,
+      AccessPermission.EDIT_TAX,
+      AccessPermission.DELETE_TAX,
+      AccessPermission.MENU_TRANSACTION,
+      AccessPermission.CREATE_TRANSACTION,
+      AccessPermission.DETAIL_TRANSACTION,
+      AccessPermission.MENU_PAYMENT,
+      AccessPermission.CREATE_PAYMENT,
+      AccessPermission.DETAIL_PAYMENT,
+    ],
+  },
+  {
+    role: UserRole.WAREHOUSE_MANAGER,
+    permissions: [
+      AccessPermission.MENU_PRODUCT,
+      AccessPermission.CREATE_PRODUCT,
+      AccessPermission.DETAIL_PRODUCT,
+      AccessPermission.EDIT_PRODUCT,
+      AccessPermission.MENU_UNIT_QUANTITY,
+      AccessPermission.CREATE_UNIT_QUANTITY,
+      AccessPermission.DETAIL_UNIT_QUANTITY,
+      AccessPermission.EDIT_UNIT_QUANTITY,
+      AccessPermission.MENU_INVENTORY,
+      AccessPermission.MANIPULATE_INVENTORY,
+      AccessPermission.DETAIL_INVENTORY,
+    ],
+  },
+  {
+    role: UserRole.CASHIER,
+    permissions: [
+      AccessPermission.MENU_CUSTOMER,
+      AccessPermission.CREATE_CUSTOMER,
+      AccessPermission.DETAIL_CUSTOMER,
+      AccessPermission.EDIT_CUSTOMER,
+      AccessPermission.DELETE_CUSTOMER,
+      AccessPermission.MENU_TRANSACTION,
+      AccessPermission.CREATE_TRANSACTION,
+      AccessPermission.DETAIL_TRANSACTION,
+      AccessPermission.MENU_PAYMENT,
+      AccessPermission.CREATE_PAYMENT,
+      AccessPermission.DETAIL_PAYMENT,
+    ],
+  },
+  {
+    role: UserRole.FINANCE,
+    permissions: [
+      AccessPermission.MENU_CUSTOMER,
+      AccessPermission.CREATE_CUSTOMER,
+      AccessPermission.DETAIL_CUSTOMER,
+      AccessPermission.EDIT_CUSTOMER,
+      AccessPermission.DELETE_CUSTOMER,
+      AccessPermission.MENU_TAX,
+      AccessPermission.CREATE_TAX,
+      AccessPermission.DETAIL_TAX,
+      AccessPermission.EDIT_TAX,
+      AccessPermission.DELETE_TAX,
+      AccessPermission.MENU_TRANSACTION,
+      AccessPermission.CREATE_TRANSACTION,
+      AccessPermission.DETAIL_TRANSACTION,
+      AccessPermission.MENU_PAYMENT,
+      AccessPermission.CREATE_PAYMENT,
+      AccessPermission.DETAIL_PAYMENT,
+      AccessPermission.MENU_INVENTORY,
+      AccessPermission.DETAIL_INVENTORY,
+    ],
+  },
+];

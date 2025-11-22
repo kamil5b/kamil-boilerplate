@@ -1,0 +1,6 @@
+export enum ProductType {
+  SELLABLE = "SELLABLE",
+  ASSET = "ASSET",
+  UTILITY = "UTILITY",
+  PLACEHOLDER = "PLACEHOLDER",
+}

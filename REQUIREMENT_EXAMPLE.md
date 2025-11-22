@@ -1,0 +1,202 @@
+Create CRUD Dashboard:
+
+- Auth:
+    - Login
+    - Register
+    - Forgot Password
+    - Activate Account
+    - Super Admin can CRUD User
+    - JWT Token Based
+
+- CRUD User
+    - Fields:
+        - ID*
+        - Name*
+        - Email*
+        - Password
+        - Role*
+        - Remark
+        - Created At*
+        - Updated At*
+        - Created By*
+        - Updated By*
+        - Deleted At
+        - Deleted By
+    - CRUD Only by Super Admin
+
+- CRUD Customer:
+    - Fields:
+        - ID*
+        - Name*
+        - Phone Number*
+        - Email
+        - Address
+        - Description
+        - Remark
+        - Created At*
+        - Updated At*
+        - Created By*
+        - Updated By*
+        - Deleted At
+        - Deleted By
+    - Create
+    - Detail
+    - Update
+    - Delete
+
+- CRUD Unit Quantity:
+    - Fields:
+        - ID*
+        - Name*
+        - Remark
+        - Created At*
+        - Updated At*
+        - Created By*
+        - Updated By*
+        - Deleted At
+        - Deleted By
+    - Create
+    - Detail
+    - Update
+    - Delete
+
+- CRUD Product:
+    - Fields:
+        - ID*
+        - Name*
+        - Description*
+        - Type*: SELLABLE/ASSET/UTILITY/PLACEHOLDER
+        - Remark
+        - Created At*
+        - Updated At*
+        - Created By*
+        - Updated By*
+        - Deleted At
+        - Deleted By
+    - Create
+    - Detail
+    - Update
+    - Delete
+
+- Inventory History:
+    - Fields:
+        - ID*
+        - ProductID*
+        - Quantity* (can be minus, float)
+        - Unit Quantity ID*
+        - Remark
+        - Created At*
+        - Created By*
+    - Read Dashboard
+        - Historical Table
+        - Inventory Summary
+            - Product
+                - Detail (if product clicked): Line graph -> total quantity (X), date (Y), Unit quantity (Line)
+            - Total Quantity
+            - Unit Quantity
+    - Manipulate
+        - User can't directly create/update. It have to be from Transaction
+        - User can manipulate via trade
+            - example: there are 3 box of chocolate A, can turn to 6 piece of chocolate A by: -1 box chocolate A, +6 piece of chocolate A
+                - it is possible that: 1 box item X is 3 piece item X and 2 piece item Y
+
+
+- CRUD Tax:
+    - Fields:
+        - ID*
+        - Name*
+        - Value*
+        - Remark
+        - Created At*
+        - Updated At*
+        - Created By*
+        - Updated By*
+        - Deleted At
+        - Deleted By
+    - Create
+    - Update
+    - Delete
+
+- CR Transaction:
+    - Fields:
+        - ID*
+        - Transaction Items[]:*
+            - ID*
+            - ProductID*
+            - Quantity* (unsigned float)
+            - Unit Quantity ID*
+            - Price per Unit* (unsigned)
+            - Total* (unsigned)
+            - Remark
+        - Subtotal*
+        - Discounts[]:
+            - Type*: TOTAL FIXED/TOTAL PERCENTAGE/ITEM PERCENTAGE/ITEM FIXED
+            - Percetage
+        - Taxes*
+        - Total Tax*
+        - Grand Total*
+        - Type*: SELL/BUY
+            - If sell, then everything become minus
+        - Status: UNPAID/PARTIALLY_PAID/PAID
+        - Remark
+        - Created At*
+        - Created By*
+    - Create
+        - When sell product, make sure that the product's total quantity of that unit quantity is > 0 and after the transaction >= 0
+    - Read Dashboard
+        - Historical Table
+        - Transaction Summary
+            - Total Revenue
+            - Total Expenses
+            - Net Income
+        - Transaction Graph
+            - Line graph -> total amount (X), date (Y)
+                - Revenue (green line)
+                - Expense (red line)
+                - Net Income (blue line)
+        - Product Summary
+            - Product
+                - Detail (if product clicked): Line graph -> total quantity (X), date (Y)
+                    - Revenue (green line)
+                    - Expense (red line)
+                    - Net Income (blue line)
+            - Revenue per product
+            - Expense per product
+            - Net Income per product
+            
+        
+
+- CR Payments:
+    - Fields:
+        - ID*
+        - TransactionID (optional)
+        - Type*: CASH/PAPER/CARD/QRIS/TRANSFER
+        - Amount*
+        - Details[]:
+            - ID
+            - Identifier
+            - Value
+        - Remark
+        - Created At*
+        - Created By*
+    - Create
+    - Detail
+
+
+- RBAC:
+    - Super Admin, can do anything
+    - Admin, can do anything but add user
+    - Warehouse Manager
+        - Create, Read, Update Product
+        - Create, Read, Update Unit Quantity
+        - Manipulate, Read Historical Inventory
+    - Cashier
+        - Create Payments
+        - Create, Read Historical Transaction
+        - CRUD Customer
+    - Finance
+        - Create Payments
+        - Full Access Transaction
+        - CRUD Tax
+        - Full Read Access Inventory
+        - CRUD Customer

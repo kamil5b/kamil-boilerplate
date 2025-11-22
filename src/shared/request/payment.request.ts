@@ -1,0 +1,19 @@
+import { PaginationRequest } from "./common.request";
+
+export interface CreatePaymentRequest {
+  transactionId?: string;
+  type: string;
+  amount: number;
+  details?: {
+    identifier: string;
+    value: string;
+  }[];
+  remark?: string;
+}
+
+export interface GetPaymentsRequest extends PaginationRequest {
+  type?: string;
+  transactionId?: string;
+  startDate?: string;
+  endDate?: string;
+}

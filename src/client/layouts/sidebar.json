@@ -1,0 +1,49 @@
+{
+  "navigation": [
+    {
+      "title": "Dashboard",
+      "href": "/dashboard",
+      "icon": "dashboard"
+    },
+    {
+      "title": "Users",
+      "href": "/users",
+      "icon": "users"
+    },
+    {
+      "title": "Customers",
+      "href": "/customers",
+      "icon": "store"
+    },
+    {
+      "title": "Products",
+      "href": "/products",
+      "icon": "package"
+    },
+    {
+      "title": "Unit Quantities",
+      "href": "/unit-quantities",
+      "icon": "ruler"
+    },
+    {
+      "title": "Taxes",
+      "href": "/taxes",
+      "icon": "calculator"
+    },
+    {
+      "title": "Inventory",
+      "href": "/inventory-histories",
+      "icon": "warehouse"
+    },
+    {
+      "title": "Transactions",
+      "href": "/transactions",
+      "icon": "receipt"
+    },
+    {
+      "title": "Payments",
+      "href": "/payments",
+      "icon": "creditCard"
+    }
+  ]
+}
