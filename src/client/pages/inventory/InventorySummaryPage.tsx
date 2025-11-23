@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import type { InventorySummaryResponse, DataResponse } from "@/shared";
 import { AccessPermission } from "@/shared";
@@ -9,10 +9,9 @@ import { usePermissions } from "@/client/hooks";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   ErrorAlert,
   LoadingSpinner,
+  SearchBar,
 } from "@/client/components";
 import {
   Table,
@@ -22,10 +21,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/client/components/ui/table";
+import { Button } from "@/client/components/ui/button";
 
 interface InventorySummaryPageProps {
   onBack: () => void;
   onViewProduct: (productId: string) => void;
+}
+
+interface FlattenedInventoryItem {
+  productId: string;
+  productName: string;
+  unitQuantityId: string;
+  unitQuantityName: string;
+  totalQuantity: number;
 }
 
 export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummaryPageProps) {
@@ -34,6 +42,7 @@ export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummary
   const [summary, setSummary] = useState<InventorySummaryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
@@ -49,6 +58,35 @@ export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummary
       .finally(() => setIsLoading(false));
   }, []);
 
+  // Flatten the nested structure into a single array
+  const flattenedData = useMemo(() => {
+    const items: FlattenedInventoryItem[] = [];
+    for (const product of summary) {
+      for (const qty of product.quantities) {
+        items.push({
+          productId: product.productId,
+          productName: product.productName,
+          unitQuantityId: qty.unitQuantityId,
+          unitQuantityName: qty.unitQuantityName,
+          totalQuantity: qty.totalQuantity,
+        });
+      }
+    }
+    return items;
+  }, [summary]);
+
+  // Filter data based on search term
+  const filteredData = useMemo(() => {
+    if (!searchTerm) return flattenedData;
+    
+    const lowerSearch = searchTerm.toLowerCase();
+    return flattenedData.filter(
+      (item) =>
+        item.productName.toLowerCase().includes(lowerSearch) ||
+        item.unitQuantityName.toLowerCase().includes(lowerSearch)
+    );
+  }, [flattenedData, searchTerm]);
+
   if (isLoading) return <LoadingSpinner message="Loading inventory summary..." />;
   if (error) return <ErrorAlert message={error} />;
 
@@ -56,61 +94,64 @@ export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummary
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Inventory Summary</h1>
-        <button
-          onClick={onBack}
-          className="px-4 py-2 border rounded hover:bg-gray-100"
-        >
+        <Button onClick={onBack} variant="outline">
           Back
-        </button>
+        </Button>
       </div>
 
-      {summary.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center text-gray-500">
-            No inventory data available
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {summary.map((product) => (
-            <Card key={product.productId}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>{product.productName}</CardTitle>
-                  <button
-                    onClick={() => onViewProduct(product.productId)}
-                    className="text-sm text-blue-500 hover:underline"
-                  >
-                    View Details →
-                  </button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Unit</TableHead>
-                      <TableHead className="text-right">Total Quantity</TableHead>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="mb-4">
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search by product or unit..."
+            />
+          </div>
+
+          {filteredData.length === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              {searchTerm ? "No results found" : "No inventory data available"}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product Name</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead className="text-right">Total Quantity</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredData.map((item) => (
+                    <TableRow key={`${item.productId}-${item.unitQuantityId}`}>
+                      <TableCell className="font-medium">{item.productName}</TableCell>
+                      <TableCell>{item.unitQuantityName}</TableCell>
+                      <TableCell className="text-right">
+                        <span className={item.totalQuantity < 0 ? "text-red-500 font-semibold" : "text-green-600 font-semibold"}>
+                          {item.totalQuantity}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => onViewProduct(item.productId)}
+                          className="text-blue-500"
+                        >
+                          View Details
+                        </Button>
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {product.quantities.map((qty) => (
-                      <TableRow key={qty.unitQuantityId}>
-                        <TableCell className="font-medium">{qty.unitQuantityName}</TableCell>
-                        <TableCell className="text-right">
-                          <span className={qty.totalQuantity < 0 ? "text-red-500" : "text-green-600"}>
-                            {qty.totalQuantity}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

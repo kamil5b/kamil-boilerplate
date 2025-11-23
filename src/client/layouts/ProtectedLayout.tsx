@@ -23,6 +23,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  Book,
 } from "lucide-react";
 import sidebarConfig from "./navigation.json";
 import { cn } from "@/client/utils";
@@ -39,12 +40,14 @@ const iconMap = {
   creditCard: CreditCard,
   dollarSign: DollarSign,
   fileText: FileText,
+  book: Book,
 };
 
 interface SubmenuItem {
   title: string;
   href: string;
   permission?: string;
+  icon?: string;
 }
 
 interface NavigationItem {
@@ -162,6 +165,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
                         .filter((subItem) => !subItem.permission || can(subItem.permission))
                         .map((subItem) => {
                           const isSubActive = pathname === subItem.href;
+                          const SubitemIcon = subItem.icon ? iconMap[subItem.icon as keyof typeof iconMap] : null;
                           return (
                             <Link key={subItem.href} href={subItem.href}>
                               <Button
@@ -170,6 +174,7 @@ export function ProtectedLayout({ children }: ProtectedLayoutProps) {
                                 className="w-full justify-start"
                                 onClick={() => setSidebarOpen(false)}
                               >
+                              {SubitemIcon && <SubitemIcon className="mr-2 h-4 w-4" />}
                                 {subItem.title}
                               </Button>
                             </Link>

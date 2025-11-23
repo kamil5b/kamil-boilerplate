@@ -246,12 +246,12 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
                           </TableCell>
                           {onViewProduct && (
                             <TableCell className="text-right">
-                              <button
+                              <Button
                                 onClick={() => onViewProduct(product.productId)}
                                 className="text-blue-600 hover:underline text-sm"
                               >
                                 View Details
-                              </button>
+                              </Button>
                             </TableCell>
                           )}
                         </TableRow>

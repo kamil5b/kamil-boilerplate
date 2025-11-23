@@ -6,6 +6,7 @@ import { apiRequest } from "@/client/helpers";
 import { AccessPermission } from "@/shared";
 import type { TransactionTimeSeriesItemResponse, DataResponse } from "@/shared/response";
 import { usePermissions } from "@/client/hooks";
+import { Button } from "@/client/components/ui/button";
 import {
   Card,
   CardContent,
@@ -86,12 +87,12 @@ export function ProductTransactionDetailPage({
           <h1 className="text-3xl font-bold">{productName}</h1>
           <p className="text-sm text-gray-500 mt-2">Transaction history over time</p>
         </div>
-        <button
+        <Button
           onClick={onBack}
           className="px-4 py-2 border rounded hover:bg-gray-100"
         >
           Back
-        </button>
+        </Button>
       </div>
 
       <Card>

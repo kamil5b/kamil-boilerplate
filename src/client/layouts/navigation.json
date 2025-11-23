@@ -12,28 +12,35 @@
       "permission": "menu_user"
     },
     {
-      "title": "Customers",
-      "href": "/customers",
-      "icon": "store",
-      "permission": "menu_customer"
-    },
-    {
-      "title": "Products",
-      "href": "/products",
-      "icon": "package",
-      "permission": "menu_product"
-    },
-    {
-      "title": "Unit Quantities",
-      "href": "/unit-quantities",
-      "icon": "ruler",
-      "permission": "menu_unit_quantity"
-    },
-    {
-      "title": "Taxes",
-      "href": "/taxes",
-      "icon": "calculator",
-      "permission": "menu_tax"
+      "title": "Catalog",
+      "href": "/dashboard",
+      "icon": "book",
+      "submenu": [
+        {
+          "title": "Customers",
+          "href": "/customers",
+          "icon": "store",
+          "permission": "menu_customer"
+        },
+        {
+          "title": "Products",
+          "href": "/products",
+          "icon": "package",
+          "permission": "menu_product"
+        },
+        {
+          "title": "Unit Quantities",
+          "href": "/unit-quantities",
+          "icon": "ruler",
+          "permission": "menu_unit_quantity"
+        },
+        {
+          "title": "Taxes",
+          "href": "/taxes",
+          "icon": "calculator",
+          "permission": "menu_tax"
+        }
+      ]
     },
     {
       "title": "Inventory",

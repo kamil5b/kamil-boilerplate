@@ -76,19 +76,19 @@ export function TransactionDetailPage({ transactionId, onBack, onCreatePayment }
         <h1 className="text-3xl font-bold">Transaction Details</h1>
         <div className="flex gap-2">
           {transaction.status !== "PAID" && can(AccessPermission.CREATE_PAYMENT) && (
-            <button
+            <Button
               onClick={() => onCreatePayment(transactionId)}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               Create Payment
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             onClick={onBack}
             className="px-4 py-2 border rounded hover:bg-gray-100"
           >
             Back
-          </button>
+          </Button>
         </div>
       </div>
 
