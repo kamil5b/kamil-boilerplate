@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/client/helpers";
 import { AccessPermission } from "@/shared";
+import type { InventoryTimeSeriesResponse, DataResponse } from "@/shared/response";
 import { usePermissions } from "@/client/hooks";
 import {
   Card,
@@ -34,13 +35,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface TimeSeriesData {
-  date: string;
-  unitQuantityId: string;
-  unitQuantityName: string;
-  quantity: number;
-}
-
 interface ProductInventoryDetailPageProps {
   productId: string;
   productName: string;
@@ -54,7 +48,7 @@ export function ProductInventoryDetailPage({
 }: ProductInventoryDetailPageProps) {
   const router = useRouter();
   const { can, isLoading: authLoading } = usePermissions();
-  const [data, setData] = useState<TimeSeriesData[]>([]);
+  const [data, setData] = useState<InventoryTimeSeriesResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -74,16 +68,13 @@ export function ProductInventoryDetailPage({
     setError("");
 
     try {
-      const response = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        data: TimeSeriesData[];
-      }>(`/api/inventory-histories/time-series?productId=${productId}`);
+      const response = await apiRequest<DataResponse<InventoryTimeSeriesResponse[]>>(
+        `/api/inventory-histories/time-series?productId=${productId}`
+      );
 
-      // Sort by date for better visualization
+      // Sort data by unit quantity name for better visualization
       const sortedData = [...response.data].sort((a, b) => 
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+        a.unitQuantityName.localeCompare(b.unitQuantityName)
       );
       setData(sortedData);
     } catch (err: any) {
@@ -127,76 +118,73 @@ export function ProductInventoryDetailPage({
 
           {!error && data.length > 0 && (
             <>
-              {/* Line Chart */}
-              <div className="mb-8">
-                <h3 className="font-medium mb-4">Quantity Over Time</h3>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                    />
-                    <YAxis label={{ value: 'Quantity', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip 
-                      labelFormatter={(value) => formatDateTime(value as string)}
-                      formatter={(value: number, name: string) => [value.toFixed(2), name]}
-                    />
-                    <Legend />
-                    {/* Group data by unit and create a line for each unit */}
-                    {Array.from(new Set(data.map(d => d.unitQuantityName))).map((unitName, index) => {
-                      const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
-                      return (
-                        <Line
-                          key={unitName}
-                          type="monotone"
-                          dataKey={(entry) => entry.unitQuantityName === unitName ? entry.quantity : null}
-                          name={unitName}
-                          stroke={colors[index % colors.length]}
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          connectNulls
-                        />
-                      );
-                    })}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              {/* Display by Unit Quantity */}
+              {data.map((unitData) => (
+                <div key={unitData.unitQuantityId} className="mb-8">
+                  <h3 className="font-medium mb-4">
+                    {unitData.unitQuantityName} - Cumulative Quantity Over Time
+                  </h3>
+                  
+                  {/* Line Chart */}
+                  {unitData.data.length > 0 && (
+                    <div className="mb-6">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={unitData.data}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="date" 
+                            tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                          />
+                          <YAxis label={{ value: 'Total Quantity', angle: -90, position: 'insideLeft' }} />
+                          <Tooltip 
+                            labelFormatter={(value) => formatDateTime(value as string)}
+                            formatter={(value: number) => [value.toFixed(2), 'Total Quantity']}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="totalQuantity"
+                            name="Total Quantity"
+                            stroke="#22c55e"
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
 
-              {/* Detailed table */}
-              <div>
-                <h3 className="font-medium mb-4">Detailed History</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead className="text-right">Quantity</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {data.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{formatDateTime(item.date)}</TableCell>
-                        <TableCell>{item.unitQuantityName}</TableCell>
-                        <TableCell className="text-right">
-                          <span
-                            className={
-                              item.quantity > 0
-                                ? "text-green-600 font-medium"
-                                : item.quantity < 0
-                                ? "text-red-600 font-medium"
-                                : ""
-                            }
-                          >
-                            {item.quantity.toFixed(2)}
-                          </span>
-                        </TableCell>
+                  {/* Detailed table */}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Total Quantity</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {unitData.data.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={2} className="text-center text-gray-500">
+                            No data available
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        unitData.data.map((point, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{formatDateTime(point.date)}</TableCell>
+                            <TableCell className="text-right">
+                              <span className="font-medium">
+                                {point.totalQuantity.toFixed(2)}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              ))}
             </>
           )}
         </CardContent>

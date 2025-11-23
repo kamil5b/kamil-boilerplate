@@ -24,6 +24,7 @@ export interface InventoryHistoryRepository {
   createBatch(client: PoolClient, items: Omit<InventoryHistory, "id" | "createdAt">[]): Promise<InventoryHistory[]>;
   getSummaryByProduct(client: PoolClient, productId?: string): Promise<any[]>;
   getTotalQuantity(client: PoolClient, productId: string, unitQuantityId: string): Promise<number>;
+  getTimeSeriesByProduct(client: PoolClient, productId: string, unitQuantityId?: string, startDate?: string, endDate?: string, interval?: string): Promise<any[]>;
 }
 
 export function createInventoryHistoryRepository(): InventoryHistoryRepository {
@@ -169,6 +170,68 @@ export function createInventoryHistoryRepository(): InventoryHistoryRepository {
         [productId, unitQuantityId]
       );
       return Number.parseFloat(result.rows[0].total);
+    },
+
+    async getTimeSeriesByProduct(client, productId, unitQuantityId, startDate, endDate, interval = 'day') {
+      // Build date truncation based on interval
+      let dateFormat: string;
+      switch (interval) {
+        case 'week':
+          dateFormat = "DATE_TRUNC('week', ih.created_at)";
+          break;
+        case 'month':
+          dateFormat = "DATE_TRUNC('month', ih.created_at)";
+          break;
+        case 'year':
+          dateFormat = "DATE_TRUNC('year', ih.created_at)";
+          break;
+        case 'day':
+        default:
+          dateFormat = "DATE_TRUNC('day', ih.created_at)";
+          break;
+      }
+
+      let whereClause = "WHERE p.id = $1 AND p.deleted_at IS NULL";
+      const queryParams: any[] = [productId];
+      let paramCounter = 2;
+
+      if (unitQuantityId) {
+        whereClause += ` AND uq.id = $${paramCounter}`;
+        queryParams.push(unitQuantityId);
+        paramCounter++;
+      }
+
+      if (startDate) {
+        whereClause += ` AND ih.created_at >= $${paramCounter}`;
+        queryParams.push(startDate);
+        paramCounter++;
+      }
+
+      if (endDate) {
+        whereClause += ` AND ih.created_at <= $${paramCounter}`;
+        queryParams.push(endDate);
+        paramCounter++;
+      }
+
+      const result = await client.query(
+        `SELECT 
+          p.id as product_id,
+          p.name as product_name,
+          uq.id as unit_quantity_id,
+          uq.name as unit_quantity_name,
+          ${dateFormat} as date,
+          SUM(ih.quantity) as quantity
+         FROM products p
+         CROSS JOIN unit_quantities uq
+         LEFT JOIN inventory_histories ih ON ih.product_id = p.id AND ih.unit_quantity_id = uq.id
+         ${whereClause}
+         AND uq.deleted_at IS NULL
+         GROUP BY p.id, p.name, uq.id, uq.name, date
+         ORDER BY date ASC, uq.name`,
+        queryParams
+      );
+
+      return result.rows;
     },
   };
 }

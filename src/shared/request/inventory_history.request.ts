@@ -20,3 +20,11 @@ export interface ManipulateInventoryRequest {
 export interface GetInventorySummaryRequest {
   productId?: string;
 }
+
+export interface GetInventoryTimeSeriesRequest {
+  productId: string;
+  unitQuantityId?: string;
+  startDate?: string;
+  endDate?: string;
+  interval?: string; // 'day', 'week', 'month', 'year'
+}

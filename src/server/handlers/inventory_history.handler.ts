@@ -84,6 +84,46 @@ export class InventoryHistoryHandler {
     }
   }
 
+  async getInventoryTimeSeries(request: NextRequest): Promise<NextResponse> {
+    try {
+      const { searchParams } = new URL(request.url);
+      const productId = searchParams.get("productId");
+      const unitQuantityId = searchParams.get("unitQuantityId") || undefined;
+      const startDate = searchParams.get("startDate") || undefined;
+      const endDate = searchParams.get("endDate") || undefined;
+      const interval = searchParams.get("interval") || "day";
+
+      if (!productId) {
+        return NextResponse.json(
+          {
+            message: "productId is required",
+            requestedAt: new Date().toISOString(),
+            requestId: crypto.randomUUID(),
+          },
+          { status: 400 }
+        );
+      }
+
+      const result = await this.inventoryService.getInventoryTimeSeries({
+        productId,
+        unitQuantityId,
+        startDate,
+        endDate,
+        interval,
+      });
+
+      return NextResponse.json(
+        {
+          ...createBaseResponse("Inventory time series retrieved successfully"),
+          data: result,
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
   private handleError(error: unknown): NextResponse {
     if (error instanceof AppError) {
       return NextResponse.json(

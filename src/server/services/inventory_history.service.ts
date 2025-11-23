@@ -9,10 +9,12 @@ import {
   GetInventoryHistoriesRequest,
   ManipulateInventoryRequest,
   GetInventorySummaryRequest,
+  GetInventoryTimeSeriesRequest,
 } from "@/shared/request";
 import {
   InventoryHistoryResponse,
   InventorySummaryResponse,
+  InventoryTimeSeriesResponse,
   PaginatedResponse,
 } from "@/shared/response";
 
@@ -21,6 +23,7 @@ export interface InventoryHistoryService {
   getInventoryHistories(params: GetInventoryHistoriesRequest): Promise<PaginatedResponse<InventoryHistoryResponse>>;
   manipulateInventory(data: ManipulateInventoryRequest, createdBy: string): Promise<{ message: string }>;
   getInventorySummary(params: GetInventorySummaryRequest): Promise<InventorySummaryResponse[]>;
+  getInventoryTimeSeries(params: GetInventoryTimeSeriesRequest): Promise<InventoryTimeSeriesResponse[]>;
 }
 
 function mapInventoryHistoryToResponse(history: any): InventoryHistoryResponse {
@@ -191,6 +194,78 @@ export function createInventoryHistoryService(): InventoryHistoryService {
         }
 
         return Array.from(productMap.values());
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+
+    async getInventoryTimeSeries(params) {
+      const client = await getDbClient();
+
+      try {
+        await client.query("BEGIN");
+
+        const { productId, unitQuantityId, startDate, endDate, interval = "day" } = params;
+
+        // Validate product exists
+        const product = await productRepo.findById(client, productId);
+        if (!product) {
+          throw new AppError("Product not found", 404);
+        }
+
+        // Validate unit quantity if provided
+        if (unitQuantityId) {
+          const unitQuantity = await unitQuantityRepo.findById(client, unitQuantityId);
+          if (!unitQuantity) {
+            throw new AppError("Unit quantity not found", 404);
+          }
+        }
+
+        // Get time series data
+        const rows = await inventoryRepo.getTimeSeriesByProduct(
+          client,
+          productId,
+          unitQuantityId,
+          startDate,
+          endDate,
+          interval
+        );
+
+        await client.query("COMMIT");
+
+        // Group by unit quantity and build response
+        const unitQuantityMap = new Map<string, InventoryTimeSeriesResponse>();
+
+        for (const row of rows) {
+          const key = row.unit_quantity_id;
+          
+          if (!unitQuantityMap.has(key)) {
+            unitQuantityMap.set(key, {
+              productId: row.product_id,
+              productName: row.product_name,
+              unitQuantityId: row.unit_quantity_id,
+              unitQuantityName: row.unit_quantity_name,
+              data: [],
+            });
+          }
+
+          const unitQuantityData = unitQuantityMap.get(key)!;
+          
+          // Calculate cumulative quantity (running total)
+          const previousTotal = unitQuantityData.data.length > 0 
+            ? unitQuantityData.data[unitQuantityData.data.length - 1].totalQuantity 
+            : 0;
+          
+          unitQuantityData.data.push({
+            date: row.date.toISOString(),
+            totalQuantity: previousTotal + Number.parseFloat(row.quantity || 0),
+          });
+        }
+
+        return Array.from(unitQuantityMap.values());
       } catch (error) {
         await client.query("ROLLBACK");
         throw error;

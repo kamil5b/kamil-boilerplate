@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { InventorySummaryResponse } from "@/shared";
+import type { InventorySummaryResponse, DataResponse } from "@/shared";
 import { AccessPermission } from "@/shared";
 import { apiRequest } from "@/client/helpers";
 import { usePermissions } from "@/client/hooks";
@@ -43,7 +43,7 @@ export function InventorySummaryPage({ onBack, onViewProduct }: InventorySummary
   }, [can, authLoading, router]);
 
   useEffect(() => {
-    apiRequest<{ data: InventorySummaryResponse[] }>("/api/inventory-histories/summary")
+    apiRequest<DataResponse<InventorySummaryResponse[]>>("/api/inventory-histories/summary")
       .then((response) => setSummary(response.data))
       .catch((err) => setError(err.message || "Failed to load inventory summary"))
       .finally(() => setIsLoading(false));
