@@ -33,26 +33,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-interface TransactionSummary {
-  totalRevenue: number;
-  totalExpenses: number;
-  netIncome: number;
-}
-
-interface TimeSeriesData {
-  date: string;
-  revenue: number;
-  expenses: number;
-  netIncome: number;
-}
-
-interface ProductSummary {
-  productId: string;
-  productName: string;
-  revenue: number;
-  expenses: number;
-}
+import type {
+  TransactionSummaryResponse,
+  ProductTransactionSummaryResponse,
+  TransactionTimeSeriesItemResponse,
+  DataResponse,
+} from "@/shared/response";
 
 interface TransactionDashboardPageProps {
   onViewProduct?: (productId: string) => void;
@@ -61,9 +47,9 @@ interface TransactionDashboardPageProps {
 export function TransactionDashboardPage({ onViewProduct }: TransactionDashboardPageProps) {
   const router = useRouter();
   const { can, isLoading: authLoading } = usePermissions();
-  const [summary, setSummary] = useState<TransactionSummary | null>(null);
-  const [timeSeries, setTimeSeries] = useState<TimeSeriesData[]>([]);
-  const [productSummary, setProductSummary] = useState<ProductSummary[]>([]);
+  const [summary, setSummary] = useState<TransactionSummaryResponse | null>(null);
+  const [timeSeries, setTimeSeries] = useState<TransactionTimeSeriesItemResponse[]>([]);
+  const [productSummary, setProductSummary] = useState<ProductTransactionSummaryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -71,12 +57,11 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
     if (authLoading) return;
     if (!can(AccessPermission.DASHBOARD_TRANSACTION)) {
       router.push("/dashboard");
+      return;
     }
-  }, [can, authLoading, router]);
-
-  useEffect(() => {
+    // Only load data if user has permission
     loadData();
-  }, []);
+  }, [can, authLoading, router]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -84,35 +69,26 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
 
     try {
       // Load summary
-      const summaryResponse = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        summary: TransactionSummary;
-      }>("/api/transactions/summary");
-      setSummary(summaryResponse.summary);
+      const summaryResponse = await apiRequest<DataResponse<TransactionSummaryResponse>>(
+        "/api/transactions/summary"
+      );
+      setSummary(summaryResponse.data);
 
       // Load time-series
-      const timeSeriesResponse = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        data: TimeSeriesData[];
-      }>("/api/transactions/time-series");
-      // Sort by date
+      const timeSeriesResponse = await apiRequest<DataResponse<TransactionTimeSeriesItemResponse[]>>(
+        "/api/transactions/time-series"
+      );
+      // Sort by period
       const sortedTimeSeries = [...timeSeriesResponse.data].sort((a, b) => 
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+        new Date(a.period).getTime() - new Date(b.period).getTime()
       );
       setTimeSeries(sortedTimeSeries);
 
-      // Load product summary (using the same endpoint with productId filter)
-      const productResponse = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        products: ProductSummary[];
-      }>("/api/transactions/product-summary");
-      setProductSummary(productResponse.products || []);
+      // Load product summary
+      const productResponse = await apiRequest<DataResponse<ProductTransactionSummaryResponse[]>>(
+        "/api/transactions/product-summary"
+      );
+      setProductSummary(productResponse.data || []);
     } catch (err: any) {
       setError(err.message || "Failed to load dashboard data");
     } finally {
@@ -120,8 +96,12 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
+  }
+
+  if (!can(AccessPermission.DASHBOARD_TRANSACTION)) {
+    return null; // Will redirect
   }
 
   return (
@@ -129,6 +109,14 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
       <h1 className="text-3xl font-bold">Transaction Dashboard</h1>
 
       {error && <ErrorAlert message={error} />}
+
+      {!error && !summary && (
+        <Card>
+          <CardContent className="py-10 text-center text-gray-500">
+            No transaction data available yet.
+          </CardContent>
+        </Card>
+      )}
 
       {!error && summary && (
         <>
@@ -185,7 +173,7 @@ export function TransactionDashboardPage({ onViewProduct }: TransactionDashboard
                   <LineChart data={timeSeries}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
-                      dataKey="date" 
+                      dataKey="period" 
                       tickFormatter={(value) => new Date(value).toLocaleDateString()}
                     />
                     <YAxis label={{ value: 'Amount', angle: -90, position: 'insideLeft' }} />

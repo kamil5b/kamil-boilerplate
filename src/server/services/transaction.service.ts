@@ -13,6 +13,7 @@ import {
   GetTransactionsRequest,
   GetTransactionSummaryRequest,
   GetProductTransactionSummaryRequest,
+  GetTransactionTimeSeriesRequest,
 } from "@/shared/request";
 import {
   TransactionResponse,
@@ -21,6 +22,7 @@ import {
   PaginatedResponse,
   TransactionSummaryResponse,
   ProductTransactionSummaryResponse,
+  TransactionTimeSeriesItemResponse,
 } from "@/shared/response";
 import { TransactionType, TransactionStatus, DiscountType } from "@/shared/enums";
 
@@ -30,7 +32,7 @@ export interface TransactionService {
   createTransaction(data: CreateTransactionRequest, createdBy: string): Promise<TransactionResponse>;
   getTransactionSummary(params: GetTransactionSummaryRequest): Promise<TransactionSummaryResponse>;
   getProductTransactionSummary(params: GetProductTransactionSummaryRequest): Promise<ProductTransactionSummaryResponse[]>;
-  getTransactionTimeSeries(params: { startDate?: string; endDate?: string; interval?: string }): Promise<any[]>;
+  getTransactionTimeSeries(params: GetTransactionTimeSeriesRequest): Promise<TransactionTimeSeriesItemResponse[]>;
 }
 
 function mapTransactionItemToResponse(item: any): TransactionItemResponse {
@@ -445,7 +447,14 @@ export function createTransactionService(): TransactionService {
 
         await client.query("COMMIT");
 
-        return timeSeriesData;
+        return timeSeriesData.map((item) => ({
+          period: item.period.toISOString(),
+          revenue: item.revenue,
+          expenses: item.expenses,
+          netIncome: item.netIncome,
+          sellCount: item.sellCount,
+          buyCount: item.buyCount,
+        }));
       } catch (error) {
         await client.query("ROLLBACK");
         throw error;

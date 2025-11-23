@@ -38,3 +38,9 @@ export interface GetProductTransactionSummaryRequest {
   startDate?: string;
   endDate?: string;
 }
+
+export interface GetTransactionTimeSeriesRequest {
+  startDate?: string;
+  endDate?: string;
+  interval?: string; // 'day', 'week', 'month', 'year'
+}

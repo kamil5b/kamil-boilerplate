@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiRequest } from "@/client/helpers";
 import { AccessPermission } from "@/shared";
+import type { TransactionTimeSeriesItemResponse, DataResponse } from "@/shared/response";
 import { usePermissions } from "@/client/hooks";
 import {
   Card,
@@ -25,13 +26,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-interface ProductTransactionData {
-  date: string;
-  revenue: number;
-  expenses: number;
-  netIncome: number;
-}
-
 interface ProductTransactionDetailPageProps {
   productId: string;
   productName: string;
@@ -45,7 +39,7 @@ export function ProductTransactionDetailPage({
 }: ProductTransactionDetailPageProps) {
   const router = useRouter();
   const { can, isLoading: authLoading } = usePermissions();
-  const [data, setData] = useState<ProductTransactionData[]>([]);
+  const [data, setData] = useState<TransactionTimeSeriesItemResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -65,16 +59,13 @@ export function ProductTransactionDetailPage({
     setError("");
 
     try {
-      const response = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        data: ProductTransactionData[];
-      }>(`/api/transactions/time-series?productId=${productId}`);
+      const response = await apiRequest<DataResponse<TransactionTimeSeriesItemResponse[]>>(
+        `/api/transactions/time-series?productId=${productId}`
+      );
 
-      // Sort by date
+      // Sort by period
       const sortedData = [...response.data].sort((a, b) =>
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+        new Date(a.period).getTime() - new Date(b.period).getTime()
       );
       setData(sortedData);
     } catch (err: any) {
@@ -121,7 +112,7 @@ export function ProductTransactionDetailPage({
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                  dataKey="date"
+                  dataKey="period"
                   tickFormatter={(value) => new Date(value).toLocaleDateString()}
                 />
                 <YAxis label={{ value: 'Amount', angle: -90, position: 'insideLeft' }} />

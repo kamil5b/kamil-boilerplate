@@ -61,7 +61,14 @@ export interface TransactionRepository {
   updateStatus(client: PoolClient, id: string, status: string): Promise<Transaction | null>;
   getSummary(client: PoolClient, startDate?: string, endDate?: string): Promise<any>;
   getProductSummary(client: PoolClient, productId?: string, startDate?: string, endDate?: string): Promise<any[]>;
-  getTimeSeries(client: PoolClient, startDate?: string, endDate?: string, interval?: string): Promise<any[]>;
+  getTimeSeries(client: PoolClient, startDate?: string, endDate?: string, interval?: string): Promise<Array<{
+    period: Date;
+    revenue: number;
+    expenses: number;
+    netIncome: number;
+    sellCount: number;
+    buyCount: number;
+  }>>;
 }
 
 export function createTransactionRepository(): TransactionRepository {

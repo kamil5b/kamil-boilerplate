@@ -10,3 +10,10 @@ export interface UserResponse {
   createdByName?: string;
   updatedByName?: string;
 }
+
+export interface MeResponse {
+  userId: string;
+  email: string;
+  role: string;
+  name: string;
+}

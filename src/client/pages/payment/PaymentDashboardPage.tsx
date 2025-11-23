@@ -31,20 +31,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-interface CustomerPaymentSummary {
-  customerId: string | null;
-  customerName: string;
-  payable: number;
-  receivable: number;
-}
-
-interface CustomerPaymentHistoryPoint {
-  date: string;
-  payable: number;
-  receivable: number;
-  net: number;
-}
+import type {
+  CustomerPaymentSummary,
+  CustomerPaymentHistoryPoint,
+  PaymentDashboardResponse,
+} from "@/shared/response";
 
 export function PaymentDashboardPage() {
   const router = useRouter();
@@ -70,15 +61,7 @@ export function PaymentDashboardPage() {
     setError("");
 
     try {
-      const response = await apiRequest<{
-        message: string;
-        requestedAt: string;
-        requestId: string;
-        data: {
-          customerSummaries: CustomerPaymentSummary[];
-          historicalData: CustomerPaymentHistoryPoint[];
-        };
-      }>("/api/payments/dashboard");
+      const response = await apiRequest<PaymentDashboardResponse>("/api/payments/dashboard");
 
       setCustomerSummaries(response.data.customerSummaries);
       

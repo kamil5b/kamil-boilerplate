@@ -43,13 +43,13 @@ export interface TransactionSummaryResponse {
   endDate: string;
 }
 
-export interface TransactionTimeSeriesResponse {
-  data: {
-    date: string;
-    revenue: number;
-    expenses: number;
-    netIncome: number;
-  }[];
+export interface TransactionTimeSeriesItemResponse {
+  period: string;
+  revenue: number;
+  expenses: number;
+  netIncome: number;
+  sellCount: number;
+  buyCount: number;
 }
 
 export interface ProductTransactionSummaryResponse {

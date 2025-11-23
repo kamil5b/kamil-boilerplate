@@ -1,14 +1,7 @@
 import { getDbClient } from "../db";
 import { createUserRepository } from "../repositories";
 import { AppError } from "../utils/error";
-import { UserRole } from "@/shared/enums";
-
-export interface MeResponse {
-  userId: string;
-  email: string;
-  role: UserRole;
-  name: string;
-}
+import { MeResponse } from "@/shared/response";
 
 export interface MeService {
   getMe(userId: string): Promise<MeResponse>;
@@ -31,7 +24,7 @@ export function createMeService(): MeService {
         return {
           userId: user.id,
           email: user.email,
-          role: user.role as UserRole,
+          role: user.role,
           name: user.name,
         };
       } finally {
