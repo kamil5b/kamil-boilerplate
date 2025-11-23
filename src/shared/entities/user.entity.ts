@@ -2,12 +2,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  passwordHash: string;
+  passwordHash: string | null;
   role: string;
   isActive: boolean;
   activationToken: string | null;
   resetPasswordToken: string | null;
   resetPasswordExpires: Date | null;
+  setPasswordToken: string | null;
+  setPasswordExpires: Date | null;
   remark: string | null;
   createdAt: Date;
   updatedAt: Date;

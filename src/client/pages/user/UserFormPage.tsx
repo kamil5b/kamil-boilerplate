@@ -22,7 +22,6 @@ interface UserFormPageProps {
 type UserFormData = {
   name: string;
   email: string;
-  password: string;
   role: string;
 };
 
@@ -44,14 +43,6 @@ export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps)
       type: "email",
       required: true,
       placeholder: "user@example.com",
-      initialValue: "",
-    },
-    {
-      name: "password",
-      label: "Password",
-      type: "password",
-      required: !isEdit,
-      placeholder: isEdit ? "Leave blank to keep current password" : "",
       initialValue: "",
     },
     {
@@ -99,37 +90,19 @@ export function UserFormPage({ userId, onSuccess, onCancel }: UserFormPageProps)
         
         const emailError = validateEmail(data.email);
         if (emailError) errors.email = emailError;
-        
-        if (!isEdit) {
-          const passwordError = validatePassword(data.password);
-          if (passwordError) errors.password = passwordError;
-        } else if (data.password) {
-          const passwordError = validatePassword(data.password);
-          if (passwordError) errors.password = passwordError;
-        }
-        
+
         return errors;
       }}
       transformToRequest={(data) => {
-        // For edit mode, only include password if it's provided
-        if (isEdit && !data.password) {
-          return {
-            name: data.name,
-            email: data.email,
-            role: data.role as UserRole,
-          } as CreateUserRequest;
-        }
         return {
           name: data.name,
           email: data.email,
-          password: data.password,
           role: data.role as UserRole,
         };
       }}
       transformFromResponse={(response) => ({
         name: response.name,
         email: response.email,
-        password: "",
         role: response.role,
       })}
     />

@@ -2,6 +2,8 @@ import { getDbClient } from "../db";
 import { createUserRepository } from "../repositories";
 import { AppError } from "../utils/error";
 import { hashPassword } from "../utils/auth";
+import { sendSetPasswordEmail } from "../utils/mail";
+import crypto from "crypto";
 import {
   CreateUserRequest,
   UpdateUserRequest,
@@ -111,25 +113,36 @@ export function createUserService(): UserService {
           throw new AppError("Email already exists", 400);
         }
 
-        // Hash password
-        const passwordHash = hashPassword(data.password);
+        // Generate set password token instead of hashing password
+        const setPasswordToken = crypto.randomBytes(32).toString("hex");
+        const setPasswordExpires = new Date(Date.now() + 24 * 3600000); // 24 hours
 
-        // Create user
+        // Create user without password
         const user = await userRepo.create(client, {
           name: data.name,
           email: data.email,
-          passwordHash,
+          passwordHash: null, // No password yet
           role: data.role,
           isActive: true, // Admin-created users are active by default
           activationToken: null,
           resetPasswordToken: null,
           resetPasswordExpires: null,
+          setPasswordToken,
+          setPasswordExpires,
           remark: data.remark || null,
           createdBy,
           updatedBy: createdBy,
           deletedAt: null,
           deletedBy: null,
         });
+
+        // Send set password email
+        try {
+          await sendSetPasswordEmail(data.email, data.name, setPasswordToken);
+        } catch (emailError) {
+          console.error("Failed to send set password email:", emailError);
+          // Continue with user creation even if email fails
+        }
 
         await client.query("COMMIT");
         return mapUserToResponse(user);
@@ -168,9 +181,6 @@ export function createUserService(): UserService {
         if (data.email) updateData.email = data.email;
         if (data.role) updateData.role = data.role;
         if (data.remark !== undefined) updateData.remark = data.remark || null;
-        if (data.password) {
-          updateData.passwordHash = hashPassword(data.password);
-        }
 
         const user = await userRepo.update(client, id, updateData);
         if (!user) {

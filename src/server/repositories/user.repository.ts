@@ -7,6 +7,7 @@ export interface UserRepository {
   findByEmail(client: PoolClient, email: string): Promise<User | null>;
   findByActivationToken(client: PoolClient, token: string): Promise<User | null>;
   findByResetToken(client: PoolClient, token: string): Promise<User | null>;
+  findBySetPasswordToken(client: PoolClient, token: string): Promise<User | null>;
   findAll(client: PoolClient, params: GetUsersRequest): Promise<{ users: User[]; total: number }>;
   create(client: PoolClient, data: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User>;
   update(client: PoolClient, id: string, data: Partial<User>): Promise<User | null>;
@@ -27,6 +28,8 @@ function mapRowToUser(row: any): User {
     activationToken: row.activation_token,
     resetPasswordToken: row.reset_password_token,
     resetPasswordExpires: row.reset_password_expires,
+    setPasswordToken: row.set_password_token,
+    setPasswordExpires: row.set_password_expires,
     remark: row.remark,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -71,6 +74,14 @@ export function createUserRepository(): UserRepository {
       return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
     },
 
+    async findBySetPasswordToken(client, token) {
+      const result = await client.query(
+        "SELECT * FROM users WHERE set_password_token = $1 AND set_password_expires > NOW() AND deleted_at IS NULL",
+        [token]
+      );
+      return result.rows[0] ? mapRowToUser(result.rows[0]) : null;
+    },
+
     async findAll(client, params) {
       const { page = 1, limit = 10, search = "", role } = params;
       const offset = (page - 1) * limit;
@@ -109,8 +120,8 @@ export function createUserRepository(): UserRepository {
 
     async create(client, data) {
       const result = await client.query(
-        `INSERT INTO users (name, email, password_hash, role, is_active, activation_token, remark, created_by, updated_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO users (name, email, password_hash, role, is_active, activation_token, set_password_token, set_password_expires, remark, created_by, updated_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
           data.name,
@@ -119,6 +130,8 @@ export function createUserRepository(): UserRepository {
           data.role,
           data.isActive,
           data.activationToken,
+          data.setPasswordToken,
+          data.setPasswordExpires,
           data.remark,
           data.createdBy,
           data.updatedBy,
@@ -163,6 +176,14 @@ export function createUserRepository(): UserRepository {
       if (data.resetPasswordExpires !== undefined) {
         fields.push(`reset_password_expires = $${paramCounter++}`);
         values.push(data.resetPasswordExpires);
+      }
+      if (data.setPasswordToken !== undefined) {
+        fields.push(`set_password_token = $${paramCounter++}`);
+        values.push(data.setPasswordToken);
+      }
+      if (data.setPasswordExpires !== undefined) {
+        fields.push(`set_password_expires = $${paramCounter++}`);
+        values.push(data.setPasswordExpires);
       }
       if (data.remark !== undefined) {
         fields.push(`remark = $${paramCounter++}`);

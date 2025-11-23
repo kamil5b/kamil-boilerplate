@@ -9,6 +9,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ActivateAccountRequest,
+  SetPasswordRequest,
 } from "@/shared/request";
 import { LoginResponse, AuthTokenPayload } from "@/shared/response";
 import { UserRole } from "@/shared/enums";
@@ -20,6 +21,7 @@ export interface AuthService {
   forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }>;
   resetPassword(data: ResetPasswordRequest): Promise<{ message: string }>;
   activateAccount(data: ActivateAccountRequest): Promise<{ message: string }>;
+  setPassword(data: SetPasswordRequest): Promise<{ message: string }>;
 }
 
 export function createAuthService(): AuthService {
@@ -35,6 +37,10 @@ export function createAuthService(): AuthService {
         const user = await userRepo.findByEmail(client, data.email);
         if (!user) {
           throw new AppError("Invalid email or password", 401);
+        }
+
+        if (!user.passwordHash) {
+          throw new AppError("Password not set. Please check your email for the set password link.", 403);
         }
 
         const bcrypt = await import("bcryptjs");
@@ -102,6 +108,8 @@ export function createAuthService(): AuthService {
           activationToken,
           resetPasswordToken: null,
           resetPasswordExpires: null,
+          setPasswordToken: null,
+          setPasswordExpires: null,
           remark: null,
           createdBy: null,
           updatedBy: null,
@@ -243,6 +251,46 @@ export function createAuthService(): AuthService {
 
         return {
           message: "Account activated successfully. You can now login.",
+        };
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      } finally {
+        client.release();
+      }
+    },
+
+    async setPassword(data) {
+      const client = await getDbClient();
+
+      try {
+        await client.query("BEGIN");
+
+        const user = await userRepo.findBySetPasswordToken(client, data.token);
+        if (!user) {
+          throw new AppError("Invalid or expired set password token", 400);
+        }
+
+        const passwordHash = hashPassword(data.password);
+
+        await userRepo.update(client, user.id, {
+          passwordHash,
+          setPasswordToken: null,
+          setPasswordExpires: null,
+        });
+
+        // Send confirmation email
+        try {
+          await sendPasswordChangedEmail(user.email, user.name);
+        } catch (emailError) {
+          console.error("Failed to send password changed email:", emailError);
+          // Continue even if email fails
+        }
+
+        await client.query("COMMIT");
+
+        return {
+          message: "Password set successfully. You can now login.",
         };
       } catch (error) {
         await client.query("ROLLBACK");

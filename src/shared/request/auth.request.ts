@@ -22,3 +22,8 @@ export interface ResetPasswordRequest {
 export interface ActivateAccountRequest {
   token: string;
 }
+
+export interface SetPasswordRequest {
+  token: string;
+  password: string;
+}

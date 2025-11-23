@@ -3,7 +3,6 @@ import { PaginationRequest } from "./common.request";
 export interface CreateUserRequest {
   name: string;
   email: string;
-  password: string;
   role: string;
   remark?: string;
 }
@@ -11,9 +10,9 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  password?: string;
   role?: string;
   remark?: string;
+  // Password changes should be done via set-password or reset-password endpoints
 }
 
 export interface GetUsersRequest extends PaginationRequest {

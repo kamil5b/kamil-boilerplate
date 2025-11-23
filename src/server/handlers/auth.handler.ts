@@ -7,6 +7,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ActivateAccountRequest,
+  SetPasswordRequest,
 } from "@/shared/request";
 
 export class AuthHandler {
@@ -86,6 +87,25 @@ export class AuthHandler {
       const body: ActivateAccountRequest = await request.json();
 
       const result = await this.authService.activateAccount(body);
+
+      return NextResponse.json(
+        {
+          message: result.message,
+          requestedAt: new Date().toISOString(),
+          requestId: crypto.randomUUID(),
+        },
+        { status: 200 }
+      );
+    } catch (error) {
+      return this.handleError(error);
+    }
+  }
+
+  async setPassword(request: NextRequest): Promise<NextResponse> {
+    try {
+      const body: SetPasswordRequest = await request.json();
+
+      const result = await this.authService.setPassword(body);
 
       return NextResponse.json(
         {

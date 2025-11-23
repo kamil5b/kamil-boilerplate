@@ -291,6 +291,73 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
 }
 
 /**
+ * Send set password email for admin-created users
+ */
+export async function sendSetPasswordEmail(email: string, name: string, setPasswordToken: string): Promise<void> {
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const setPasswordUrl = `${frontendUrl}/set-password?token=${setPasswordToken}`;
+  
+  try {
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h2>Welcome, ${name}!</h2>
+        <p>An account has been created for you. Please click the button below to set your password and activate your account:</p>
+        <a href="${setPasswordUrl}" class="button">Set Your Password</a>
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #007bff;">${setPasswordUrl}</p>
+        <p>This link will expire in 24 hours.</p>
+        <div class="footer">
+          <p>If you didn't expect this email, please ignore it or contact support.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    Welcome, ${name}!
+    
+    An account has been created for you. Please visit the following link to set your password and activate your account:
+    ${setPasswordUrl}
+    
+    This link will expire in 24 hours.
+    
+    If you didn't expect this email, please ignore it or contact support.
+  `;
+
+    await sendEmail({
+      to: email,
+      subject: "Set Your Password",
+      html,
+      text,
+    });
+  } catch (error) {
+    console.error("\n============== FAILED SET PASSWORD EMAIL ==============");
+    console.error("Timestamp:", new Date().toISOString());
+    console.error("Recipient:", email);
+    console.error("User Name:", name);
+    console.error("Set Password Token:", setPasswordToken);
+    console.error("Set Password URL:", setPasswordUrl);
+    console.error("Error:", error instanceof Error ? error.message : String(error));
+    console.error("=======================================================\n");
+    throw error;
+  }
+}
+
+/**
  * Send password change confirmation email
  */
 export async function sendPasswordChangedEmail(email: string, name: string): Promise<void> {
