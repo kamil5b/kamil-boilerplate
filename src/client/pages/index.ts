@@ -27,6 +27,3 @@ export * from "./transaction";
 
 // Payment Management
 export * from "./payment";
-
-// Finance
-export * from "./finance";
