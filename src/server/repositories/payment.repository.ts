@@ -10,6 +10,7 @@ function mapRowToPayment(row: any): Payment {
     id: row.id,
     transactionId: row.transaction_id,
     type: row.type,
+    direction: row.direction,
     amount: row.amount,
     remark: row.remark,
     fileId: row.file_id,
@@ -107,10 +108,10 @@ export function createPaymentRepository(): PaymentRepository {
 
     async create(client, data) {
       const result = await client.query(
-        `INSERT INTO payments (transaction_id, type, amount, remark, file_id, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO payments (transaction_id, type, direction, amount, remark, file_id, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [data.transactionId, data.type, data.amount, data.remark, data.fileId, data.createdBy]
+        [data.transactionId, data.type, data.direction, data.amount, data.remark, data.fileId, data.createdBy]
       );
       return mapRowToPayment(result.rows[0]);
     },
@@ -135,7 +136,12 @@ export function createPaymentRepository(): PaymentRepository {
 
     async getTotalPaidForTransaction(client, transactionId) {
       const result = await client.query(
-        `SELECT COALESCE(SUM(amount), 0) as total
+        `SELECT COALESCE(SUM(
+           CASE 
+             WHEN direction = 'OUTFLOW' THEN -amount
+             ELSE amount
+           END
+         ), 0) as total
          FROM payments
          WHERE transaction_id = $1`,
         [transactionId]

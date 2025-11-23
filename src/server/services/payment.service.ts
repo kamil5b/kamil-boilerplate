@@ -13,7 +13,7 @@ import {
   PaymentDetailResponse,
   PaginatedResponse,
 } from "@/shared/response";
-import { PaymentType, TransactionStatus } from "@/shared/enums";
+import { PaymentType, PaymentDirection, TransactionStatus } from "@/shared/enums";
 
 export interface PaymentService {
   getPayment(id: string): Promise<PaymentResponse>;
@@ -53,6 +53,7 @@ export function createPaymentService(): PaymentService {
           id: payment.id,
           transactionId: payment.transaction_id,
           type: payment.type,
+          direction: payment.direction,
           amount: Number.parseFloat(payment.amount),
           details: details.map(mapPaymentDetailToResponse),
           remark: payment.remark,
@@ -95,6 +96,7 @@ export function createPaymentService(): PaymentService {
               id: p.id,
               transactionId: p.transaction_id,
               type: p.type,
+              direction: p.direction,
               amount: Number.parseFloat(p.amount),
               details: details.map(mapPaymentDetailToResponse),
               remark: p.remark,
@@ -136,6 +138,14 @@ export function createPaymentService(): PaymentService {
           throw new AppError("Invalid payment type", 400);
         }
 
+        // Validate payment direction
+        if (!Object.values(PaymentDirection).includes(data.direction as PaymentDirection)) {
+          throw new AppError("Invalid payment direction", 400);
+        }
+
+        // Calculate signed amount based on direction (for calculations)
+        const signedAmount = data.direction === PaymentDirection.OUTFLOW ? -data.amount : data.amount;
+
         // If transaction ID is provided, validate and update transaction status
         let transaction = null;
         if (data.transactionId) {
@@ -144,15 +154,15 @@ export function createPaymentService(): PaymentService {
             throw new AppError("Transaction not found", 404);
           }
 
-          // Calculate total paid
+          // Calculate total paid (with signed amounts)
           const totalPaid = await paymentRepo.getTotalPaidForTransaction(client, data.transactionId);
-          const newTotalPaid = totalPaid + data.amount;
+          const newTotalPaid = totalPaid + signedAmount;
 
           // Update transaction status
           let newStatus = transaction.status;
           const grandTotal = Number.parseFloat(transaction.grand_total);
           
-          // For BUY transactions, negative payments indicate money owed to supplier
+          // For BUY transactions, negative payments (OUTFLOW) indicate money owed to supplier
           if (transaction.type === 'BUY') {
             if (newTotalPaid <= grandTotal) {
               newStatus = TransactionStatus.PAID;
@@ -172,8 +182,8 @@ export function createPaymentService(): PaymentService {
             await transactionRepo.updateStatus(client, data.transactionId, newStatus);
           }
 
-          // Check for overpayment
-          if (newTotalPaid > Number.parseFloat(transaction.grand_total)) {
+          // Check for overpayment (for INFLOW only)
+          if (data.direction === PaymentDirection.INFLOW && newTotalPaid > Number.parseFloat(transaction.grand_total)) {
             throw new AppError(
               `Payment amount exceeds remaining balance. Remaining: ${Number.parseFloat(transaction.grand_total) - totalPaid}`,
               400
@@ -181,11 +191,12 @@ export function createPaymentService(): PaymentService {
           }
         }
 
-        // Create payment
+        // Create payment (store absolute amount with direction)
         const payment = await paymentRepo.create(client, {
           transactionId: data.transactionId || null,
           type: data.type,
-          amount: data.amount,
+          direction: data.direction,
+          amount: Math.abs(data.amount),
           remark: data.remark || null,
           fileId: data.fileId || null,
           createdBy,
@@ -210,6 +221,7 @@ export function createPaymentService(): PaymentService {
           id: payment.id,
           transactionId: payment.transactionId,
           type: payment.type,
+          direction: payment.direction,
           amount: payment.amount,
           details: details.map(mapPaymentDetailToResponse),
           remark: payment.remark,

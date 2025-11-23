@@ -5,3 +5,8 @@ export enum PaymentType {
   QRIS = "QRIS",
   TRANSFER = "TRANSFER",
 }
+
+export enum PaymentDirection {
+  INFLOW = "INFLOW",
+  OUTFLOW = "OUTFLOW",
+}

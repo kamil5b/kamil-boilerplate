@@ -3,6 +3,7 @@ import { PaginationRequest } from "./common.request";
 export interface CreatePaymentRequest {
   transactionId?: string;
   type: string;
+  direction: string;
   amount: number;
   details?: {
     identifier: string;

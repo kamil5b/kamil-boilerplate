@@ -88,8 +88,18 @@ export function PaymentDetailPage({ paymentId, onBack }: PaymentDetailPageProps)
               </div>
             </div>
             <div>
+              <label className="text-sm text-gray-500">Direction</label>
+              <div className="mt-1">
+                <Badge variant={payment.direction === "INFLOW" ? "default" : "destructive"}>
+                  {payment.direction}
+                </Badge>
+              </div>
+            </div>
+            <div>
               <label className="text-sm text-gray-500">Amount</label>
-              <p className="text-2xl font-bold">${payment.amount.toFixed(2)}</p>
+              <p className={`text-2xl font-bold ${payment.direction === "OUTFLOW" ? "text-red-600" : "text-green-600"}`}>
+                {payment.direction === "OUTFLOW" ? "-" : "+"}${payment.amount.toFixed(2)}
+              </p>
             </div>
             <div>
               <label className="text-sm text-gray-500">Created At</label>

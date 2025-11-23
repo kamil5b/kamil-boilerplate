@@ -41,8 +41,20 @@ export function PaymentsListPage({ onCreate, onView }: PaymentsListPageProps) {
           )
         },
         { 
+          header: "Direction", 
+          accessor: (payment) => (
+            <Badge variant={payment.direction === "INFLOW" ? "default" : "destructive"}>
+              {payment.direction}
+            </Badge>
+          )
+        },
+        { 
           header: "Amount", 
-          accessor: (payment) => `$${payment.amount.toFixed(2)}`,
+          accessor: (payment) => (
+            <span className={payment.direction === "OUTFLOW" ? "text-red-600" : "text-green-600"}>
+              {payment.direction === "OUTFLOW" ? "-" : "+"}${payment.amount.toFixed(2)}
+            </span>
+          ),
           className: "font-medium"
         },
         { 

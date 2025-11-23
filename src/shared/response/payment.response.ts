@@ -8,6 +8,7 @@ export interface PaymentResponse {
   id: string;
   transactionId: string | null;
   type: string;
+  direction: string;
   amount: number;
   details: PaymentDetailResponse[];
   remark: string | null;

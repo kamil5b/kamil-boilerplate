@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { CreatePaymentRequest, PaymentResponse, TransactionResponse, UploadFileResponse } from "@/shared";
-import { PaymentType, AccessPermission } from "@/shared";
+import { PaymentType, PaymentDirection, AccessPermission } from "@/shared";
 import { usePermissions } from "@/client/hooks";
 import { createResource } from "@/client/helpers";
 import { validateRequired } from "@/client/helpers/validation";
@@ -44,6 +44,7 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
   const { can, isLoading: authLoading } = usePermissions();
   const [transactionId, setTransactionId] = useState(initialTransactionId || "");
   const [type, setType] = useState<PaymentType>(PaymentType.CASH);
+  const [direction, setDirection] = useState<PaymentDirection>(PaymentDirection.INFLOW);
   const [amount, setAmount] = useState("");
   const [remark, setRemark] = useState("");
   const [details, setDetails] = useState<PaymentDetailInput[]>([]);
@@ -81,6 +82,9 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
 
     const typeError = validateRequired(type);
     if (typeError) newErrors.type = typeError;
+
+    const directionError = validateRequired(direction);
+    if (directionError) newErrors.direction = directionError;
 
     const amountError = validateRequired(amount);
     if (amountError) newErrors.amount = amountError;
@@ -138,7 +142,8 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
       const data: CreatePaymentRequest = {
         transactionId: transactionId || undefined,
         type,
-        amount: parseFloat(amount),
+        direction,
+        amount: Math.abs(parseFloat(amount)),
         details: details.filter(d => d.identifier && d.value),
         remark: remark || undefined,
         fileId: fileId || undefined,
@@ -192,6 +197,28 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
                 <SelectItem value={PaymentType.TRANSFER}>Transfer</SelectItem>
                 <SelectItem value={PaymentType.QRIS}>QRIS</SelectItem>
                 <SelectItem value={PaymentType.PAPER}>Paper</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="Direction" htmlFor="direction" required error={errors.direction}>
+            <Select value={direction} onValueChange={(value) => setDirection(value as PaymentDirection)} disabled={isLoading}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment direction" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={PaymentDirection.INFLOW}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">INFLOW</span>
+                    <span className="text-xs text-gray-500">Money coming in (positive)</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value={PaymentDirection.OUTFLOW}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">OUTFLOW</span>
+                    <span className="text-xs text-gray-500">Money going out (negative)</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </FormField>
