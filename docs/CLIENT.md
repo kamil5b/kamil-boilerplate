@@ -510,6 +510,8 @@ export default function DashboardPage() {
 }
 ```
 
+**Note**: In the new structure, `ProtectedLayout` is automatically applied to all pages in `app/(private)/` via the group's `layout.tsx`. Individual page components no longer need to wrap themselves with the layout.
+
 **Features**:
 - Authentication check (redirects to /login if not authenticated)
 - Collapsible sidebar with navigation

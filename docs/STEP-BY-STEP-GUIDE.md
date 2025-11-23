@@ -294,18 +294,20 @@ export * from './<name>.handler';
 ```
 
 ### 4.5 Create API routes
-- List: `src/app/api/(protected)/<names>/route.ts`
+- List: `src/app/(private)/api/<names>/route.ts`
   - GET: list with pagination
   - POST: create new item
-- Detail: `src/app/api/(protected)/<names>/[id]/route.ts`
+- Detail: `src/app/(private)/api/<names>/[id]/route.ts`
   - GET: get single item
   - PUT: update item
   - DELETE: soft delete item
 - Routes are **minimal wrappers** that only import and call handler methods
+- All routes in `(private)/api/` automatically require JWT authentication via middleware
+- Public routes go in `(public)/api/` (e.g., auth endpoints)
 
 **Example:**
 ```typescript
-// app/api/(protected)/users/route.ts
+// app/(private)/api/users/route.ts
 import { NextRequest } from 'next/server';
 import { UserHandler } from '@/server/handlers';
 
@@ -321,7 +323,7 @@ export async function POST(request: NextRequest) {
 ```
 
 ```typescript
-// app/api/(protected)/users/[id]/route.ts
+// app/(private)/api/users/[id]/route.ts
 import { NextRequest } from 'next/server';
 import { UserHandler } from '@/server/handlers';
 

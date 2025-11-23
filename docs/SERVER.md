@@ -438,7 +438,7 @@ await sendForgotPasswordEmail(email, resetToken);
 ### Using in API Routes
 
 ```typescript
-// app/api/(protected)/users/route.ts
+// app/(private)/api/users/route.ts
 import { UserHandler } from '@/server/handlers';
 
 const handler = new UserHandler();
@@ -452,10 +452,12 @@ export async function POST(request: NextRequest) {
 }
 ```
 
+Note: All routes in `(private)/api/` automatically require JWT authentication via middleware.
+
 ### Using with Dynamic Routes
 
 ```typescript
-// app/api/(protected)/users/[id]/route.ts
+// app/(private)/api/users/[id]/route.ts
 import { UserHandler } from '@/server/handlers';
 
 const handler = new UserHandler();

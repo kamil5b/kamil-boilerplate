@@ -18,7 +18,20 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
+    // Try to get token from localStorage first, then cookies
+    let storedToken = localStorage.getItem("auth_token");
+    
+    if (!storedToken) {
+      // Try to get from cookie
+      const cookies = document.cookie.split(";");
+      const authCookie = cookies.find((c) => c.trim().startsWith("auth_token="));
+      if (authCookie) {
+        storedToken = authCookie.split("=")[1];
+        // Sync to localStorage
+        localStorage.setItem("auth_token", storedToken);
+      }
+    }
+    
     setToken(storedToken);
     
     if (storedToken) {
@@ -57,6 +70,8 @@ export function useAuth() {
 
   const login = async (newToken: string) => {
     localStorage.setItem("auth_token", newToken);
+    // Also set cookie for middleware
+    document.cookie = `auth_token=${newToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
     setToken(newToken);
     await fetchUser(newToken);
     router.push("/dashboard");
@@ -64,6 +79,8 @@ export function useAuth() {
 
   const logout = () => {
     localStorage.removeItem("auth_token");
+    // Clear cookie
+    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     setToken(null);
     setUser(null);
     router.push("/login");

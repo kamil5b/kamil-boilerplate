@@ -31,19 +31,24 @@ A complete POS (Point of Sale) and Inventory Management system built with Next.j
 ```
 src/
 ├── app/                      # Next.js App Router
-│   ├── api/                 # API routes
-│   │   ├── auth/           # Public auth endpoints
-│   │   ├── users/          # User CRUD
-│   │   ├── customers/      # Customer CRUD
-│   │   ├── products/       # Product CRUD
-│   │   ├── taxes/          # Tax CRUD
-│   │   ├── unit-quantities/ # Unit quantity CRUD
-│   │   ├── inventory-histories/  # Inventory operations
-│   │   ├── transactions/   # Transaction management
-│   │   ├── payments/       # Payment processing
-│   │   ├── me/             # Current user info
-│   │   └── mail/           # Email utilities
-│   ├── (protected)/        # Protected routes
+│   ├── (public)/           # Public route group (no authentication)
+│   │   ├── api/            # Public API routes
+│   │   │   └── auth/       # Auth endpoints (login, register, forgot password)
+│   │   ├── login/          # Login page
+│   │   ├── register/       # Register page
+│   │   └── layout.tsx      # Public layout wrapper
+│   ├── (private)/          # Private route group (requires JWT authentication)
+│   │   ├── api/            # Protected API routes (all require Bearer token)
+│   │   │   ├── users/          # User CRUD
+│   │   │   ├── customers/      # Customer CRUD
+│   │   │   ├── products/       # Product CRUD
+│   │   │   ├── taxes/          # Tax CRUD
+│   │   │   ├── unit-quantities/ # Unit quantity CRUD
+│   │   │   ├── inventory-histories/  # Inventory operations
+│   │   │   ├── transactions/   # Transaction management
+│   │   │   ├── payments/       # Payment processing
+│   │   │   ├── finance/        # Finance dashboard data
+│   │   │   └── me/             # Current user info
 │   │   ├── customers/      # Customer pages
 │   │   ├── dashboard/      # Dashboard
 │   │   ├── inventory-histories/  # Inventory pages
@@ -52,10 +57,8 @@ src/
 │   │   ├── taxes/          # Tax pages
 │   │   ├── transactions/   # Transaction pages
 │   │   ├── unit-quantities/ # Unit quantity pages
-│   │   └── users/          # User pages
-│   ├── (public)/           # Public routes
-│   │   ├── login/          # Login page
-│   │   └── register/       # Register page
+│   │   ├── users/          # User pages
+│   │   └── layout.tsx      # Protected layout wrapper
 │   ├── globals.css
 │   ├── layout.tsx
 │   └── page.tsx
@@ -148,7 +151,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 ## API Documentation
 
-### Authentication (Public)
+### Public API Routes (`(public)/api`)
+
+These routes are accessible without authentication:
 
 - `POST /api/auth/login` - Login with email/password
 - `POST /api/auth/register` - Register new user
@@ -156,9 +161,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 - `POST /api/auth/reset-password` - Reset password with token
 - `POST /api/auth/activate` - Activate account with token
 
-### Protected Endpoints
+### Private API Routes (`(private)/api`)
 
-All endpoints below require `Authorization: Bearer <token>` header.
+All endpoints below require `Authorization: Bearer <token>` header or `auth_token` cookie.
 
 **Users**
 - `GET /api/users` - List users (paginated, searchable, filterable by role)

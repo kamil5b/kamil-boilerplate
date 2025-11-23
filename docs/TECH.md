@@ -68,16 +68,26 @@ View (frontend):
   - @radix-ui/react-label, react-select, react-separator, react-slot
 
 App Route rules:
-- `src/app/api/**/route.ts` **ONLY** import from `@/server/handlers`
+- Route Groups for organization and authentication:
+  - `src/app/(public)/` - Public routes (no authentication required)
+    - `(public)/api/auth/` - Authentication endpoints (login, register, etc.)
+    - `(public)/login/`, `(public)/register/` - Public pages
+    - Has its own `layout.tsx` that wraps with `PublicLayout`
+  - `src/app/(private)/` - Private routes (JWT authentication required)
+    - `(private)/api/**` - All protected API endpoints (require Bearer token)
+    - `(private)/**` - All protected pages (dashboard, users, products, etc.)
+    - Has its own `layout.tsx` that wraps with `ProtectedLayout`
+  - Note: Route groups `(public)` and `(private)` don't appear in URL paths
+- `src/app/(public)/api/**/route.ts` and `src/app/(private)/api/**/route.ts`
+  - **ONLY** import from `@/server/handlers`
   - Minimal wrappers that call handler methods
   - NO business logic in routes
-- `src/app/**/page.tsx` **ONLY** import from `@/client/pages` or `@/client/layouts`
+- `src/app/(public)/**/page.tsx` and `src/app/(private)/**/page.tsx`
+  - **ONLY** import from `@/client/pages`
   - Minimal wrappers that handle navigation callbacks
   - Pass `router.push()` callbacks to page components
   - NO business logic in routes
-- There must be 2 levels of privilege:
-    - `src/app/(public)/**/route.ts||page.tsx` for public page/API
-    - `src/app/(protected)/**/route.ts||page.tsx||layout.tsx` for authenticated page/API
+  - Layout wrappers are inherited from group layout.tsx
 - Page components are navigation-agnostic (receive callbacks as props)
 
 Auth:
@@ -87,10 +97,21 @@ Auth:
 - Forgot Password send email
 - Super admin can create user without password and send forgot password to user's email
 - Public and Protected layout must be different (use `@/client/layouts`)
-- Protected layout has sidebar navigation with lucide-react icons
-- If user has login, it goes to dashboard. If user hard code to `/login` then must goes back to dashboard
-- Authentication state managed via localStorage (`auth_token`)
-- Middleware protects routes at `/api/(protected)/*` and `/(protected)/*`
+  - `PublicLayout` - Simple centered container for login/register
+  - `ProtectedLayout` - Sidebar navigation with lucide-react icons, filtered by permissions
+- Route groups enforce layout inheritance:
+  - `(public)/layout.tsx` wraps all public routes with `PublicLayout`
+  - `(private)/layout.tsx` wraps all private routes with `ProtectedLayout`
+- Authentication state:
+  - Stored in localStorage (`auth_token`) for client-side access
+  - Stored in cookies (`auth_token`) for server-side middleware access
+- Middleware protection (`middleware.ts`):
+  - Public API routes: `/api/auth/*` - No authentication required
+  - Private API routes: All other `/api/*` - Require Bearer token or auth_token cookie
+  - Public pages: `/login`, `/register` - Redirect to `/dashboard` if authenticated
+  - Private pages: All other routes - Redirect to `/login` if not authenticated
+  - Root `/` - Redirects to `/dashboard` if authenticated, `/login` if not
+- If user is logged in and navigates to `/login` or `/register`, they are redirected to `/dashboard`
 
 Response:
 - All responses must extend from common:
