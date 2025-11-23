@@ -27,6 +27,7 @@ export interface TransactionResponse {
   subtotal: number;
   totalTax: number;
   grandTotal: number;
+  paidAmount: number;
   type: string;
   status: string;
   remark: string | null;

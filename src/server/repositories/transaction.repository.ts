@@ -76,11 +76,18 @@ export function createTransactionRepository(): TransactionRepository {
   return {
     async findById(client, id) {
       const result = await client.query(
-        `SELECT t.*, c.name as customer_name, u.name as created_by_name
+        `SELECT t.*, c.name as customer_name, u.name as created_by_name,
+         COALESCE(SUM(CASE 
+           WHEN p.direction = 'INFLOW' THEN p.amount 
+           WHEN p.direction = 'OUTFLOW' THEN -p.amount 
+           ELSE 0 
+         END), 0) as paid_amount
          FROM transactions t
          LEFT JOIN customers c ON t.customer_id = c.id
          LEFT JOIN users u ON t.created_by = u.id
-         WHERE t.id = $1`,
+         LEFT JOIN payments p ON t.id = p.transaction_id
+         WHERE t.id = $1
+         GROUP BY t.id, c.name, u.name`,
         [id]
       );
       return result.rows[0] || null;
@@ -125,11 +132,18 @@ export function createTransactionRepository(): TransactionRepository {
       }
 
       const result = await client.query(
-        `SELECT t.*, c.name as customer_name, u.name as created_by_name
+        `SELECT t.*, c.name as customer_name, u.name as created_by_name,
+         COALESCE(SUM(CASE 
+           WHEN p.direction = 'INFLOW' THEN p.amount 
+           WHEN p.direction = 'OUTFLOW' THEN -p.amount 
+           ELSE 0 
+         END), 0) as paid_amount
          FROM transactions t
          LEFT JOIN customers c ON t.customer_id = c.id
          LEFT JOIN users u ON t.created_by = u.id
+         LEFT JOIN payments p ON t.id = p.transaction_id
          ${whereClause}
+         GROUP BY t.id, c.name, u.name
          ORDER BY t.created_at DESC
          LIMIT $${paramCounter} OFFSET $${paramCounter + 1}`,
         [...queryParams, limit, offset]

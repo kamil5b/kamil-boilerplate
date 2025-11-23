@@ -50,6 +50,11 @@ export function TransactionsListPage({ onCreate, onView }: TransactionsListPageP
           className: "font-medium"
         },
         { 
+          header: "Paid Amount", 
+          accessor: (txn) => `$${txn.paidAmount.toFixed(2)}`,
+          className: "font-medium text-green-600"
+        },
+        { 
           header: "Status", 
           accessor: (txn) => (
             <Badge className={getStatusColor(txn.status)}>{txn.status}</Badge>
