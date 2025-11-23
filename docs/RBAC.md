@@ -52,13 +52,13 @@ This project implements a comprehensive RBAC system to control access to feature
 6. **Protected Layout** (`src/client/layouts/ProtectedLayout.tsx`)
    - Automatically filters sidebar navigation based on permissions
    - Displays user role and email
-   - Integrates with `sidebar.json` configuration
+   - Integrates with `navigation.json` configuration
 
 ## Usage
 
 ### 1. Define Permissions in Sidebar
 
-Edit `src/client/layouts/sidebar.json`:
+Edit `src/client/layouts/navigation.json`:
 
 ```json
 {
@@ -368,7 +368,7 @@ To test different roles:
   - Central configuration for all RBAC rules
   - Maps each UserRole to AccessPermission[]
 
-- **`src/client/layouts/sidebar.json`**: Navigation configuration
+- **`src/client/layouts/navigation.json`**: Navigation configuration
   - Each item can have `permissions` property
   - ProtectedLayout automatically filters menu
 
@@ -496,7 +496,7 @@ const handleAction = () => {
 
 ### 3. Configure Sidebar Navigation
 
-Edit `src/client/layouts/sidebar.json`:
+Edit `src/client/layouts/navigation.json`:
 
 ```json
 {
@@ -1433,7 +1433,7 @@ if (!hasPermission(userRole, AccessPermission.DELETE_USER)) {
 4. **Verify RBAC configuration:**
    - Check `src/shared/rbac.ts` for role permissions
    - Check `src/shared/enums.ts` for permission names
-   - Check `src/client/layouts/sidebar.json` for menu permissions
+   - Check `src/client/layouts/navigation.json` for menu permissions
 
 ---
 
@@ -1484,7 +1484,7 @@ const { can } = usePermissions();
 5. ✅ Test with multiple user roles
 6. ✅ Use `<Protected>` for declarative checks
 7. ✅ Use `usePermissions()` for imperative checks
-8. ✅ Configure sidebar in `sidebar.json`
+8. ✅ Configure sidebar in `navigation.json`
 9. ✅ Map roles to permissions in `rbac.ts`
 10. ✅ Validate on the server for actual security
 

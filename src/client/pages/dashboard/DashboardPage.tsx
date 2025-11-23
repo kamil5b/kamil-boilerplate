@@ -16,7 +16,7 @@ import {
   DollarSign,
   ChevronRight,
 } from "lucide-react";
-import sidebarConfig from "@/client/layouts/sidebar.json";
+import sidebarConfig from "@/client/layouts/navigation.json";
 import { usePermissions } from "@/client/hooks";
 
 const iconMap = {

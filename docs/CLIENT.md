@@ -516,9 +516,9 @@ export default function DashboardPage() {
 - User menu with logout
 - Active route highlighting
 - Responsive design
-- Configurable via `sidebar.json`
+- Configurable via `navigation.json`
 
-**Sidebar Configuration** (`layouts/sidebar.json`):
+**Sidebar Configuration** (`layouts/navigation.json`):
 ```json
 {
   "navigation": [
@@ -1455,7 +1455,7 @@ When adding new features:
 5. Keep components focused and reusable
 6. Add components to appropriate index files
 7. Test with different screen sizes (responsive design)
-8. Update sidebar.json for new protected routes
+8. Update navigation.json for new protected routes
 
 ## 📞 Support
 

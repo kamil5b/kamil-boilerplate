@@ -898,7 +898,7 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
 **Note:** The edit page can use the same path as detail view (`[id]/page.tsx`) or separate path (`[id]/edit/page.tsx`) depending on your routing preference.
 
 ### 5.5 Update Sidebar Navigation (if needed)
-- Location: `src/client/layouts/sidebar.json`
+- Location: `src/client/layouts/navigation.json`
 - Add new menu item:
 ```json
 {

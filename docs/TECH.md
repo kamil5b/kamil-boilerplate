@@ -245,7 +245,7 @@ UI Primitives (Button, Input, Table, etc.)
 7. Create API routes (minimal wrappers)
 8. Create page components (with hooks and helpers)
 9. Create app routes (navigation callbacks)
-10. Update sidebar if needed (`layouts/sidebar.json`)
+10. Update sidebar if needed (`layouts/navigation.json`)
 
 ## Key Dependencies
 

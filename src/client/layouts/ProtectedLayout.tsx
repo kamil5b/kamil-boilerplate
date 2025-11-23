@@ -24,7 +24,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import sidebarConfig from "./sidebar.json";
+import sidebarConfig from "./navigation.json";
 import { cn } from "@/client/utils";
 
 const iconMap = {
