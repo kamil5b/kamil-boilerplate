@@ -6,12 +6,6 @@
       "icon": "dashboard"
     },
     {
-      "title": "Finance Dashboard",
-      "href": "/finance/dashboard",
-      "icon": "dollarSign",
-      "permission": "dashboard_finance"
-    },
-    {
       "title": "Users",
       "href": "/users",
       "icon": "users",
