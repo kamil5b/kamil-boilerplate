@@ -13,6 +13,7 @@ import {
   CardTitle,
   ErrorAlert,
   LoadingSpinner,
+  FilePreview,
 } from "@/client/components";
 import {
   Table,
@@ -134,6 +135,13 @@ export function TransactionDetailPage({ transactionId, onBack, onCreatePayment }
             <div>
               <label className="text-sm text-gray-500">Remark</label>
               <p className="mt-1 p-3 bg-gray-50 rounded">{transaction.remark}</p>
+            </div>
+          )}
+
+          {transaction.fileId && (
+            <div>
+              <label className="text-sm text-gray-500 block mb-2">Attachment</label>
+              <FilePreview fileId={transaction.fileId} />
             </div>
           )}
         </CardContent>

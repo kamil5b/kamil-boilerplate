@@ -11,6 +11,7 @@ export interface PaymentResponse {
   amount: number;
   details: PaymentDetailResponse[];
   remark: string | null;
+  fileId: string | null;
   createdAt: string;
   createdByName?: string;
 }

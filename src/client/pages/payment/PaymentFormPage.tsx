@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { CreatePaymentRequest, PaymentResponse, TransactionResponse } from "@/shared";
+import type { CreatePaymentRequest, PaymentResponse, TransactionResponse, UploadFileResponse } from "@/shared";
 import { PaymentType, AccessPermission } from "@/shared";
 import { usePermissions } from "@/client/hooks";
 import { createResource } from "@/client/helpers";
@@ -17,6 +17,7 @@ import {
   Textarea,
   ErrorAlert,
   FormField,
+  FileUpload,
   PaginatedSelect,
 } from "@/client/components";
 import {
@@ -46,6 +47,9 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
   const [amount, setAmount] = useState("");
   const [remark, setRemark] = useState("");
   const [details, setDetails] = useState<PaymentDetailInput[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +95,32 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
     return Object.keys(newErrors).length === 0;
   };
 
+  const uploadFile = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+    
+    setFileUploadError(null);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const response = await fetch("/api/files", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "File upload failed");
+      }
+
+      const result: { data: UploadFileResponse } = await response.json();
+      return result.data.id;
+    } catch (err: any) {
+      setFileUploadError(err.message || "Failed to upload file");
+      throw err;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -99,12 +129,19 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
     setError("");
 
     try {
+      // Upload file first if selected
+      let fileId = uploadedFileId;
+      if (selectedFile && !uploadedFileId) {
+        fileId = await uploadFile();
+      }
+
       const data: CreatePaymentRequest = {
         transactionId: transactionId || undefined,
         type,
         amount: parseFloat(amount),
         details: details.filter(d => d.identifier && d.value),
         remark: remark || undefined,
+        fileId: fileId || undefined,
       };
 
       await createResource<PaymentResponse, CreatePaymentRequest>("/api/payments", data);
@@ -213,6 +250,25 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
               placeholder="Optional remarks or notes"
+              disabled={isLoading}
+            />
+          </FormField>
+
+          <FormField label="Attachment" htmlFor="file" error={fileUploadError || undefined}>
+            <FileUpload
+              onFileSelect={(file) => {
+                setSelectedFile(file);
+                setUploadedFileId(null);
+                setFileUploadError(null);
+              }}
+              onFileRemove={() => {
+                setSelectedFile(null);
+                setUploadedFileId(null);
+                setFileUploadError(null);
+              }}
+              selectedFile={selectedFile}
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+              maxSizeMB={10}
               disabled={isLoading}
             />
           </FormField>

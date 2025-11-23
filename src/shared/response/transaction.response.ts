@@ -30,6 +30,7 @@ export interface TransactionResponse {
   type: string;
   status: string;
   remark: string | null;
+  fileId: string | null;
   createdAt: string;
   createdByName?: string;
 }

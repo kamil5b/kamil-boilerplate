@@ -9,6 +9,7 @@ import type {
   ProductResponse,
   UnitQuantityResponse,
   TaxResponse,
+  UploadFileResponse,
 } from "@/shared";
 import { TransactionType, DiscountType, AccessPermission } from "@/shared";
 import { usePermissions } from "@/client/hooks";
@@ -26,6 +27,7 @@ import {
   FormField,
   LoadingSpinner,
   PaginatedSelect,
+  FileUpload,
 } from "@/client/components";
 import {
   Select,
@@ -68,6 +70,9 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
   const [selectedTaxes, setSelectedTaxes] = useState<string[]>([]);
   const [taxes, setTaxes] = useState<TaxResponse[]>([]);
   const [remark, setRemark] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFileId, setUploadedFileId] = useState<string | null>(null);
+  const [fileUploadError, setFileUploadError] = useState<string | null>(null);
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -214,6 +219,32 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
     return Object.keys(newErrors).length === 0;
   };
 
+  const uploadFile = async (): Promise<string | null> => {
+    if (!selectedFile) return null;
+    
+    setFileUploadError(null);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const response = await fetch("/api/files", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "File upload failed");
+      }
+
+      const result: { data: UploadFileResponse } = await response.json();
+      return result.data.id;
+    } catch (err: any) {
+      setFileUploadError(err.message || "Failed to upload file");
+      throw err;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -222,6 +253,12 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
     setError("");
 
     try {
+      // Upload file first if selected
+      let fileId = uploadedFileId;
+      if (selectedFile && !uploadedFileId) {
+        fileId = await uploadFile();
+      }
+
       const data: CreateTransactionRequest = {
         type,
         customerId: customerId || undefined,
@@ -239,6 +276,7 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
         })),
         taxes: selectedTaxes,
         remark: remark || undefined,
+        fileId: fileId || undefined,
       };
 
       await createResource<TransactionResponse, CreateTransactionRequest>(
@@ -569,6 +607,26 @@ export function TransactionFormPage({ onSuccess, onCancel }: TransactionFormPage
               value={remark}
               onChange={(e) => setRemark(e.target.value)}
               placeholder="Optional remark"
+              disabled={isLoading}
+            />
+          </FormField>
+
+          {/* File Upload */}
+          <FormField label="Attachment" htmlFor="file" error={fileUploadError || undefined}>
+            <FileUpload
+              onFileSelect={(file) => {
+                setSelectedFile(file);
+                setUploadedFileId(null);
+                setFileUploadError(null);
+              }}
+              onFileRemove={() => {
+                setSelectedFile(null);
+                setUploadedFileId(null);
+                setFileUploadError(null);
+              }}
+              selectedFile={selectedFile}
+              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+              maxSizeMB={10}
               disabled={isLoading}
             />
           </FormField>

@@ -18,6 +18,7 @@ export interface CreateTransactionRequest {
   taxes: string[]; // tax IDs
   type: string;
   remark?: string;
+  fileId?: string;
 }
 
 export interface GetTransactionsRequest extends PaginationRequest {

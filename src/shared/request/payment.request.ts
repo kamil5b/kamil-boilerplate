@@ -9,6 +9,7 @@ export interface CreatePaymentRequest {
     value: string;
   }[];
   remark?: string;
+  fileId?: string;
 }
 
 export interface GetPaymentsRequest extends PaginationRequest {

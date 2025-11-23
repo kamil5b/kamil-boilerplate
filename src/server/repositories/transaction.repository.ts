@@ -15,6 +15,7 @@ function mapRowToTransaction(row: any): Transaction {
     type: row.type,
     status: row.status,
     remark: row.remark,
+    fileId: row.file_id,
     createdAt: row.created_at,
     createdBy: row.created_by,
   };
@@ -147,10 +148,10 @@ export function createTransactionRepository(): TransactionRepository {
 
     async create(client, data) {
       const result = await client.query(
-        `INSERT INTO transactions (customer_id, subtotal, total_tax, grand_total, type, status, remark, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO transactions (customer_id, subtotal, total_tax, grand_total, type, status, remark, file_id, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [data.customerId, data.subtotal, data.totalTax, data.grandTotal, data.type, data.status, data.remark, data.createdBy]
+        [data.customerId, data.subtotal, data.totalTax, data.grandTotal, data.type, data.status, data.remark, data.fileId, data.createdBy]
       );
       return mapRowToTransaction(result.rows[0]);
     },

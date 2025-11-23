@@ -9,3 +9,4 @@ export * from "./transaction_item.entity";
 export * from "./discount.entity";
 export * from "./payment.entity";
 export * from "./payment_detail.entity";
+export * from "./file.entity";

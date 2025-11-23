@@ -56,6 +56,7 @@ export function createPaymentService(): PaymentService {
           amount: Number.parseFloat(payment.amount),
           details: details.map(mapPaymentDetailToResponse),
           remark: payment.remark,
+          fileId: payment.file_id,
           createdAt: payment.created_at?.toISOString(),
           createdByName: payment.created_by_name,
         };
@@ -97,6 +98,7 @@ export function createPaymentService(): PaymentService {
               amount: Number.parseFloat(p.amount),
               details: details.map(mapPaymentDetailToResponse),
               remark: p.remark,
+              fileId: p.file_id,
               createdAt: p.created_at?.toISOString(),
               createdByName: p.created_by_name,
             };
@@ -185,6 +187,7 @@ export function createPaymentService(): PaymentService {
           type: data.type,
           amount: data.amount,
           remark: data.remark || null,
+          fileId: data.fileId || null,
           createdBy,
         });
 
@@ -210,6 +213,7 @@ export function createPaymentService(): PaymentService {
           amount: payment.amount,
           details: details.map(mapPaymentDetailToResponse),
           remark: payment.remark,
+          fileId: payment.fileId,
           createdAt: payment.createdAt?.toISOString(),
         };
       } catch (error) {

@@ -12,6 +12,7 @@ function mapRowToPayment(row: any): Payment {
     type: row.type,
     amount: row.amount,
     remark: row.remark,
+    fileId: row.file_id,
     createdAt: row.created_at,
     createdBy: row.created_by,
   };
@@ -106,10 +107,10 @@ export function createPaymentRepository(): PaymentRepository {
 
     async create(client, data) {
       const result = await client.query(
-        `INSERT INTO payments (transaction_id, type, amount, remark, created_by)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO payments (transaction_id, type, amount, remark, file_id, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [data.transactionId, data.type, data.amount, data.remark, data.createdBy]
+        [data.transactionId, data.type, data.amount, data.remark, data.fileId, data.createdBy]
       );
       return mapRowToPayment(result.rows[0]);
     },

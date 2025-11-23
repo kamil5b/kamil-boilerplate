@@ -1,4 +1,6 @@
 export * from "./ErrorAlert";
+export * from "./FilePreview";
+export * from "./FileUpload";
 export * from "./FormField";
 export * from "./LoadingSpinner";
 export * from "./PageHeader";

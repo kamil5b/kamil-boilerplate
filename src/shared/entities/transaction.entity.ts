@@ -7,6 +7,7 @@ export interface Transaction {
   type: string;
   status: string;
   remark: string | null;
+  fileId: string | null;
   createdAt: Date;
   createdBy: string;
 }

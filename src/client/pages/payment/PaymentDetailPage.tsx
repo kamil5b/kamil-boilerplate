@@ -13,6 +13,7 @@ import {
   CardTitle,
   ErrorAlert,
   LoadingSpinner,
+  FilePreview,
 } from "@/client/components";
 import { Badge } from "@/client/components/ui/badge";
 import { formatDateTime } from "@/client/helpers";
@@ -126,6 +127,13 @@ export function PaymentDetailPage({ paymentId, onBack }: PaymentDetailPageProps)
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {payment.fileId && (
+            <div>
+              <label className="text-sm text-gray-500 block mb-2">Attachment</label>
+              <FilePreview fileId={payment.fileId} />
             </div>
           )}
         </CardContent>

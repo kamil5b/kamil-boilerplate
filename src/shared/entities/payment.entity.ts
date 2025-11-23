@@ -4,6 +4,7 @@ export interface Payment {
   type: string;
   amount: number;
   remark: string | null;
+  fileId: string | null;
   createdAt: Date;
   createdBy: string;
 }

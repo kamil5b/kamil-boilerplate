@@ -96,6 +96,7 @@ export function createTransactionService(): TransactionService {
           type: transaction.type,
           status: transaction.status,
           remark: transaction.remark,
+          fileId: transaction.file_id,
           createdAt: transaction.created_at?.toISOString(),
           createdByName: transaction.created_by_name,
         };
@@ -144,6 +145,7 @@ export function createTransactionService(): TransactionService {
               type: t.type,
               status: t.status,
               remark: t.remark,
+              fileId: t.file_id,
               createdAt: t.created_at?.toISOString(),
               createdByName: t.created_by_name,
             };
@@ -280,6 +282,7 @@ export function createTransactionService(): TransactionService {
           type: data.type,
           status: TransactionStatus.UNPAID,
           remark: data.remark || null,
+          fileId: data.fileId || null,
           createdBy,
         });
 
@@ -360,6 +363,7 @@ export function createTransactionService(): TransactionService {
           type: transaction.type,
           status: transaction.status,
           remark: transaction.remark,
+          fileId: transaction.fileId,
           createdAt: transaction.createdAt?.toISOString(),
         };
       } catch (error) {

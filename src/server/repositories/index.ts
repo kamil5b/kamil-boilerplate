@@ -7,3 +7,4 @@ export * from "./inventory_history.repository";
 export * from "./transaction.repository";
 export * from "./payment.repository";
 export * from "./payment-dashboard.repository";
+export * from "./file.repository";
