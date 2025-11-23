@@ -5,7 +5,8 @@ const handler = new FileHandler();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  return handler.getFileInfo(request, params.id);
+  const { id } = await params;
+  return handler.getFileInfo(request, id);
 }
