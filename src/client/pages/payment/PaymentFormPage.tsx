@@ -207,18 +207,8 @@ export function PaymentFormPage({ transactionId: initialTransactionId, onSuccess
                 <SelectValue placeholder="Select payment direction" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={PaymentDirection.INFLOW}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">INFLOW</span>
-                    <span className="text-xs text-gray-500">Money coming in (positive)</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value={PaymentDirection.OUTFLOW}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">OUTFLOW</span>
-                    <span className="text-xs text-gray-500">Money going out (negative)</span>
-                  </div>
-                </SelectItem>
+                <SelectItem value={PaymentDirection.INFLOW}>INFLOW</SelectItem>
+                <SelectItem value={PaymentDirection.OUTFLOW}>OUTFLOW</SelectItem>
               </SelectContent>
             </Select>
           </FormField>

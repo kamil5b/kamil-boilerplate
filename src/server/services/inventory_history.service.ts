@@ -240,6 +240,11 @@ export function createInventoryHistoryService(): InventoryHistoryService {
         const unitQuantityMap = new Map<string, InventoryTimeSeriesResponse>();
 
         for (const row of rows) {
+          // Skip rows without dates (no inventory history records)
+          if (!row.date) {
+            continue;
+          }
+
           const key = row.unit_quantity_id;
           
           if (!unitQuantityMap.has(key)) {
