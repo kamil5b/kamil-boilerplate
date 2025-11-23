@@ -33,10 +33,10 @@ function mapUserToResponse(user: any): UserResponse {
     role: user.role,
     isActive: user.is_active,
     remark: user.remark,
-    createdAt: user.created_at?.toISOString(),
-    updatedAt: user.updated_at?.toISOString(),
-    createdByName: user.created_by_name,
-    updatedByName: user.updated_by_name,
+    createdAt: user.createdAt?.toISOString(),
+    updatedAt: user.updatedAt?.toISOString(),
+    createdByName: user.createdByName,
+    updatedByName: user.updatedByName,
   };
 }
 
