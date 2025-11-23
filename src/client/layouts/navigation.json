@@ -13,7 +13,7 @@
     },
     {
       "title": "Catalog",
-      "href": "/dashboard",
+      "href": "#",
       "icon": "book",
       "submenu": [
         {

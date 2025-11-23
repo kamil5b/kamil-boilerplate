@@ -26,10 +26,10 @@ function mapTaxToResponse(tax: any): TaxResponse {
     name: tax.name,
     value: Number.parseFloat(tax.value),
     remark: tax.remark,
-    createdAt: tax.created_at?.toISOString(),
-    updatedAt: tax.updated_at?.toISOString(),
-    createdByName: tax.created_by_name,
-    updatedByName: tax.updated_by_name,
+    createdAt: tax.createdAt?.toISOString(),
+    updatedAt: tax.updatedAt?.toISOString(),
+    createdByName: tax.createdByName,
+    updatedByName: tax.updatedByName,
   };
 }
 

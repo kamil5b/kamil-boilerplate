@@ -25,10 +25,10 @@ function mapUnitQuantityToResponse(unitQuantity: any): UnitQuantityResponse {
     id: unitQuantity.id,
     name: unitQuantity.name,
     remark: unitQuantity.remark,
-    createdAt: unitQuantity.created_at?.toISOString(),
-    updatedAt: unitQuantity.updated_at?.toISOString(),
-    createdByName: unitQuantity.created_by_name,
-    updatedByName: unitQuantity.updated_by_name,
+    createdAt: unitQuantity.createdAt?.toISOString(),
+    updatedAt: unitQuantity.updatedAt?.toISOString(),
+    createdByName: unitQuantity.createdByName,
+    updatedByName: unitQuantity.updatedByName,
   };
 }
 

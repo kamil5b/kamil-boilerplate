@@ -29,10 +29,10 @@ function mapCustomerToResponse(customer: any): CustomerResponse {
     address: customer.address,
     description: customer.description,
     remark: customer.remark,
-    createdAt: customer.created_at?.toISOString(),
-    updatedAt: customer.updated_at?.toISOString(),
-    createdByName: customer.created_by_name,
-    updatedByName: customer.updated_by_name,
+    createdAt: customer.createdAt,
+    updatedAt: customer.updatedAt,
+    createdByName: customer.createdByName,
+    updatedByName: customer.updatedByName,
   };
 }
 

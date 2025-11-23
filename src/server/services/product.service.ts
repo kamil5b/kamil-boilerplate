@@ -28,8 +28,8 @@ function mapProductToResponse(product: any): ProductResponse {
     description: product.description,
     type: product.type,
     remark: product.remark,
-    createdAt: product.created_at?.toISOString(),
-    updatedAt: product.updated_at?.toISOString(),
+    createdAt: product.createdAt?.toISOString(),
+    updatedAt: product.updatedAt?.toISOString(),
     createdByName: product.created_by_name,
     updatedByName: product.updated_by_name,
   };
